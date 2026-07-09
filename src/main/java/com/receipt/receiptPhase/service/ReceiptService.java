@@ -3,77 +3,113 @@ package com.receipt.receiptPhase.service;
 import com.receipt.receiptPhase.model.DashboardStats;
 import com.receipt.receiptPhase.model.ReceiptModal;
 import com.receipt.receiptPhase.repository.ReceiptRepository;
-import com.receipt.receiptPhase.utils.IdGenerator;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
+@Transactional
 public class ReceiptService {
     private final ReceiptRepository repository;
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public ReceiptService(ReceiptRepository repository) {
         this.repository = repository;
     }
 
     public ReceiptModal createReceipt(ReceiptModal receipt) {
-        receipt.setId(IdGenerator.generateId());
-        receipt.setStatus("ACTIVE");
-        receipt.setCreatedAt(LocalDateTime.now());
-        receipt.setUpdatedAt(LocalDateTime.now());
-        return repository.save(receipt);
+        if (receipt.getTransactionNo() == null || receipt.getTransactionNo().isEmpty()) {
+            receipt.setTransactionNo(UUID.randomUUID().toString().substring(0, 20));
+        }
+        receipt.setStatus(true); // true means ACTIVE
+        receipt.setCreatedDate(LocalDateTime.now().format(formatter));
+        receipt.setModifiedDate(LocalDateTime.now().format(formatter));
+
+        repository.insertReceipt(
+                receipt.getTransactionNo(),
+                receipt.getTransactionDate(),
+                receipt.getOfficeCode(),
+                receipt.getPaymentMode(),
+                receipt.getReceiptDate(),
+                receipt.getReferenceNo(),
+                receipt.getCurrencyCode(),
+                receipt.getAmount(),
+                receipt.getBankCharge(),
+                receipt.getPaidInvoiceTotal(),
+                receipt.getReceiptTotal(),
+                receipt.getBalanceAmount(),
+                toBitValue(receipt.getPostedToCoda()),
+                toBitValue(receipt.getStatus()),
+                receipt.getBank(),
+                receipt.getCreatedDate(),
+                receipt.getCreatedUser(),
+                receipt.getModifiedDate(),
+                receipt.getModifiedUser()
+        );
+        return getReceiptByTransactionNo(receipt.getTransactionNo());
     }
 
     public List<ReceiptModal> getAllReceipts() {
-        return repository.findAll().stream()
-                .filter(r -> !"REMOVED".equals(r.getStatus()))
-                .collect(Collectors.toList());
+        return repository.findActiveReceipts();
     }
 
     public ReceiptModal updateReceipt(String id, ReceiptModal updatedData) {
-        ReceiptModal receipt = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Receipt not found with id: " + id));
-
-        receipt.setTitle(updatedData.getTitle());
-        receipt.setAmount(updatedData.getAmount());
-        receipt.setUpdatedAt(LocalDateTime.now());
-        return repository.save(receipt);
+        String modifiedDate = LocalDateTime.now().format(formatter);
+        int updatedRows = repository.updateReceiptFields(
+                id,
+                updatedData.getAmount(),
+                updatedData.getBank(),
+                updatedData.getPaymentMode(),
+                modifiedDate
+        );
+        if (updatedRows == 0) {
+            throw new RuntimeException("Receipt not found with id: " + id);
+        }
+        return getReceiptByTransactionNo(id);
     }
 
     public ReceiptModal undoVerify(String id) {
-        ReceiptModal receipt = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Receipt not found with id: " + id));
-
-        receipt.setStatus("UNDO_VERIFIED");
-        receipt.setUpdatedAt(LocalDateTime.now());
-        return repository.save(receipt);
+        markInactive(id);
+        return getReceiptByTransactionNo(id);
     }
 
     public ReceiptModal removeReceipt(String id) {
-        ReceiptModal receipt = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Receipt not found with id: " + id));
-
-        receipt.setStatus("REMOVED");
-        receipt.setUpdatedAt(LocalDateTime.now());
-        return repository.save(receipt);
+        markInactive(id);
+        return getReceiptByTransactionNo(id);
     }
 
     public DashboardStats getDashboardStats() {
-        List<ReceiptModal> all = repository.findAll();
+        ReceiptRepository.DashboardStatsProjection stats = repository.getDashboardStats();
 
-        long total = all.size();
-        long active = all.stream().filter(r -> "ACTIVE".equals(r.getStatus())).count();
-        long undo = all.stream().filter(r -> "UNDO_VERIFIED".equals(r.getStatus())).count();
-        long removed = all.stream().filter(r -> "REMOVED".equals(r.getStatus())).count();
+        return new DashboardStats(
+                stats.getTotalReceipts(),
+                stats.getActiveReceipts(),
+                stats.getInactiveReceipts(),
+                0,
+                stats.getTotalAmount().doubleValue()
+        );
+    }
 
-        // Removed தவிர மீதமுள்ள ஆக்டிவ் தொகையின் கூட்டுத்தொகை
-        double totalAmount = all.stream()
-                .filter(r -> !"REMOVED".equals(r.getStatus()))
-                .mapToDouble(ReceiptModal::getAmount)
-                .sum();
+    private void markInactive(String id) {
+        int updatedRows = repository.markReceiptInactive(id, LocalDateTime.now().format(formatter));
+        if (updatedRows == 0) {
+            throw new RuntimeException("Receipt not found with id: " + id);
+        }
+    }
 
-        return new DashboardStats(total, active, undo, removed, totalAmount);
+    private ReceiptModal getReceiptByTransactionNo(String id) {
+        return repository.findByTransactionNo(id)
+                .orElseThrow(() -> new RuntimeException("Receipt not found with id: " + id));
+    }
+
+    private String toBitValue(Boolean value) {
+        if (value == null) {
+            return null;
+        }
+        return value ? "1" : "0";
     }
 }
