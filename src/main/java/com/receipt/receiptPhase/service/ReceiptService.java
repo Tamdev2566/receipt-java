@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @Transactional
@@ -23,7 +22,7 @@ public class ReceiptService {
 
     public ReceiptModal createReceipt(ReceiptModal receipt) {
         if (receipt.getTransactionNo() == null || receipt.getTransactionNo().isEmpty()) {
-            receipt.setTransactionNo(UUID.randomUUID().toString().substring(0, 20));
+            receipt.setTransactionNo(generateNextTransactionNo());
         }
         receipt.setStatus(true); // true means ACTIVE
         receipt.setCreatedDate(LocalDateTime.now().format(formatter));
@@ -104,6 +103,11 @@ public class ReceiptService {
     private ReceiptModal getReceiptByTransactionNo(String id) {
         return repository.findByTransactionNo(id)
                 .orElseThrow(() -> new RuntimeException("Receipt not found with id: " + id));
+    }
+
+    private String generateNextTransactionNo() {
+        int nextNumber = repository.findLatestReceiptNumber() + 1;
+        return String.format("RCT%03d", nextNumber);
     }
 
     private String toBitValue(Boolean value) {

@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/receipts")
@@ -18,8 +19,12 @@ public class ReceiptController {
     }
 
     @PostMapping
-    public ResponseEntity<ReceiptModal> createReceipt(@RequestBody ReceiptModal receipt) {
-        return ResponseEntity.ok(service.createReceipt(receipt));
+    public ResponseEntity<Map<String, String>> createReceipt(@RequestBody ReceiptModal receipt) {
+        ReceiptModal createdReceipt = service.createReceipt(receipt);
+        return ResponseEntity.ok(Map.of(
+                "message", "Receipt created successfully",
+                "transactionNo", createdReceipt.getTransactionNo()
+        ));
     }
 
     @GetMapping

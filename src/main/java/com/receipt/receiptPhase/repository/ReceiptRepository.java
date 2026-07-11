@@ -87,6 +87,13 @@ public interface ReceiptRepository extends JpaRepository<ReceiptModal, String> {
     List<ReceiptModal> findActiveReceipts();
 
     @Query(value = """
+            SELECT COALESCE(MAX(CAST(SUBSTRING(transaction_no FROM 4) AS INTEGER)), 0)
+            FROM receipt
+            WHERE transaction_no ~ '^RCT[0-9]+$'
+            """, nativeQuery = true)
+    int findLatestReceiptNumber();
+
+    @Query(value = """
             SELECT *
             FROM receipt
             WHERE transaction_no = :transactionNo
