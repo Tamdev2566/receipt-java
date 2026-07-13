@@ -20,11 +20,13 @@ public class ReceiptService {
         this.repository = repository;
     }
 
-    public ReceiptModal createReceipt(ReceiptModal receipt) {
-        if (receipt.getTransactionNo() == null || receipt.getTransactionNo().isEmpty()) {
+    public synchronized ReceiptModal createReceipt(ReceiptModal receipt) {
+
+        if (receipt.getTransactionNo() == null || receipt.getTransactionNo().isBlank()) {
             receipt.setTransactionNo(generateNextTransactionNo());
         }
-        receipt.setStatus(true); // true means ACTIVE
+
+        receipt.setStatus(true);
         receipt.setCreatedDate(LocalDateTime.now().format(formatter));
         receipt.setModifiedDate(LocalDateTime.now().format(formatter));
 
@@ -49,6 +51,7 @@ public class ReceiptService {
                 receipt.getModifiedDate(),
                 receipt.getModifiedUser()
         );
+
         return getReceiptByTransactionNo(receipt.getTransactionNo());
     }
 
@@ -106,8 +109,21 @@ public class ReceiptService {
     }
 
     private String generateNextTransactionNo() {
-        int nextNumber = repository.findLatestReceiptNumber() + 1;
-        return String.format("RCT%03d", nextNumber);
+
+        String datePrefix = LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern("yyMMdd"));
+
+        String maxTransactionNo = repository.findMaxTransactionNo(datePrefix);
+
+        if (maxTransactionNo == null || maxTransactionNo.isBlank()) {
+            return datePrefix + "0001";
+        }
+
+        String lastFourDigits = maxTransactionNo.substring(maxTransactionNo.length() - 4);
+
+        int nextSequence = Integer.parseInt(lastFourDigits) + 1;
+
+        return datePrefix + String.format("%04d", nextSequence);
     }
 
     private String toBitValue(Boolean value) {
