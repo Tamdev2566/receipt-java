@@ -20,13 +20,11 @@ public class ReceiptService {
         this.repository = repository;
     }
 
-    public synchronized ReceiptModal createReceipt(ReceiptModal receipt) {
-
-        if (receipt.getTransactionNo() == null || receipt.getTransactionNo().isBlank()) {
+    public ReceiptModal createReceipt(ReceiptModal receipt) {
+        if (receipt.getTransactionNo() == null || receipt.getTransactionNo().isEmpty()) {
             receipt.setTransactionNo(generateNextTransactionNo());
         }
-
-        receipt.setStatus(true);
+        receipt.setStatus(true); // true means ACTIVE
         receipt.setCreatedDate(LocalDateTime.now().format(formatter));
         receipt.setModifiedDate(LocalDateTime.now().format(formatter));
 
@@ -51,7 +49,6 @@ public class ReceiptService {
                 receipt.getModifiedDate(),
                 receipt.getModifiedUser()
         );
-
         return getReceiptByTransactionNo(receipt.getTransactionNo());
     }
 
@@ -110,20 +107,21 @@ public class ReceiptService {
 
     private String generateNextTransactionNo() {
 
-        String datePrefix = LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern("yyMMdd"));
+        String datePrefix = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMdd"));
 
-        String maxTransactionNo = repository.findMaxTransactionNo(datePrefix);
+        String maxTransNo = repository.findMaxTransactionNoForDate(datePrefix + "%");
 
-        if (maxTransactionNo == null || maxTransactionNo.isBlank()) {
+
+        if (maxTransNo == null || maxTransNo.isEmpty()) {
+
             return datePrefix + "0001";
+        } else {
+
+            String sequenceStr = maxTransNo.substring(maxTransNo.length() - 4);
+            int nextSequence = Integer.parseInt(sequenceStr) + 1;
+
+            return datePrefix + String.format("%04d", nextSequence);
         }
-
-        String lastFourDigits = maxTransactionNo.substring(maxTransactionNo.length() - 4);
-
-        int nextSequence = Integer.parseInt(lastFourDigits) + 1;
-
-        return datePrefix + String.format("%04d", nextSequence);
     }
 
     private String toBitValue(Boolean value) {
