@@ -11,21 +11,22 @@ import java.util.List;
 @Repository
 public interface SourceSystemRecordRepository extends JpaRepository<SourceSystemRecord, String> {
 
-    // Vessel-க்கான தேடல் (vessel_name அல்லது vessel_code)
-    @Query(value = "SELECT MIN(bl_no) as id, vessel_code as vesselCode, vessel_name as vesselName " +
+    @Query(value = "SELECT bl_no as id, vessel_code as vesselCode, vessel_name as vesselName " +
             "FROM source_system_records " +
             "WHERE (:customerName IS NULL OR :customerName = '' OR customer_name = :customerName) " +
-            "AND (:search IS NULL OR :search = '' OR vessel_name LIKE %:search% OR vessel_code LIKE %:search%) " +
-            "GROUP BY vessel_code, vessel_name", nativeQuery = true)
+            "AND (:search IS NULL OR :search = '' OR vessel_name LIKE %:search% OR vessel_code LIKE %:search%)",
+            nativeQuery = true)
     List<VesselProjection> findVessels(@Param("customerName") String customerName,
                                        @Param("search") String search);
 
-    // Voyage-க்கான தேடல் (voyage_no மட்டும்)
-    @Query(value = "SELECT MIN(bl_no) as id, voyage_no as voyageNo " +
+
+    @Query(value = "SELECT bl_no as id, voyage_no as voyageNo " +
             "FROM source_system_records " +
             "WHERE (:customerName IS NULL OR :customerName = '' OR customer_name = :customerName) " +
-            "AND (:search IS NULL OR :search = '' OR voyage_no LIKE %:search%) " +
-            "GROUP BY voyage_no", nativeQuery = true)
+            "AND (:vessel IS NULL OR :vessel = '' OR vessel_name = :vessel OR vessel_code = :vessel) " +
+            "AND (:search IS NULL OR :search = '' OR voyage_no LIKE %:search%)",
+            nativeQuery = true)
     List<VoyageProjection> findVoyages(@Param("customerName") String customerName,
+                                       @Param("vessel") String vessel,
                                        @Param("search") String search);
 }

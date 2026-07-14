@@ -24,7 +24,6 @@ public class SourceSystemRecordController {
         return ResponseEntity.ok(service.getVessels(request));
     }
 
-
     @PostMapping("/getvoyage")
     public ResponseEntity<List<VoyageProjection>> getVoyage(@RequestBody SearchRequest request) {
         return ResponseEntity.ok(service.getVoyages(request));

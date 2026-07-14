@@ -22,6 +22,6 @@ public class SourceSystemRecordService {
     }
 
     public List<VoyageProjection> getVoyages(SearchRequest request) {
-        return repository.findVoyages(request.getCustomerName(), request.getSearch());
+        return repository.findVoyages(request.getCustomerName(), request.getVessel(), request.getSearch());
     }
 }
