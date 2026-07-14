@@ -24,7 +24,7 @@ public class ReceiptService {
         if (receipt.getTransactionNo() == null || receipt.getTransactionNo().isEmpty()) {
             receipt.setTransactionNo(generateNextTransactionNo());
         }
-        receipt.setStatus(true); // true means ACTIVE
+        receipt.setStatus(true);
         receipt.setCreatedDate(LocalDateTime.now().format(formatter));
         receipt.setModifiedDate(LocalDateTime.now().format(formatter));
 
