@@ -11,20 +11,23 @@ import java.util.List;
 @Repository
 public interface SourceSystemRecordRepository extends JpaRepository<SourceSystemRecord, String> {
 
-    @Query(value = "SELECT bl_no as id, vessel_code as vesselCode, vessel_name as vesselName " +
+
+    @Query(value = "SELECT MIN(bl_no) as id, vessel_code as vesselCode, vessel_name as vesselName " +
             "FROM source_system_records " +
             "WHERE (:customerName IS NULL OR :customerName = '' OR customer_name = :customerName) " +
-            "AND (:search IS NULL OR :search = '' OR vessel_name LIKE %:search% OR vessel_code LIKE %:search%)",
+            "AND (:search IS NULL OR :search = '' OR vessel_name LIKE %:search% OR vessel_code LIKE %:search%) " +
+            "GROUP BY vessel_code, vessel_name",
             nativeQuery = true)
     List<VesselProjection> findVessels(@Param("customerName") String customerName,
                                        @Param("search") String search);
 
 
-    @Query(value = "SELECT bl_no as id, voyage_no as voyageNo " +
+    @Query(value = "SELECT MIN(bl_no) as id, voyage_no as voyageNo " +
             "FROM source_system_records " +
             "WHERE (:customerName IS NULL OR :customerName = '' OR customer_name = :customerName) " +
             "AND (:vessel IS NULL OR :vessel = '' OR vessel_name = :vessel OR vessel_code = :vessel) " +
-            "AND (:search IS NULL OR :search = '' OR voyage_no LIKE %:search%)",
+            "AND (:search IS NULL OR :search = '' OR voyage_no LIKE %:search%) " +
+            "GROUP BY voyage_no",
             nativeQuery = true)
     List<VoyageProjection> findVoyages(@Param("customerName") String customerName,
                                        @Param("vessel") String vessel,
