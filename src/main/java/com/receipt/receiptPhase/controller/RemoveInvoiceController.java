@@ -1,6 +1,6 @@
 package com.receipt.receiptPhase.controller;
 
-import com.receipt.receiptPhase.dto.RemoveInvoiceRequest;
+import com.receipt.receiptPhase.model.RemoveInvoiceRequest;
 import com.receipt.receiptPhase.service.RemoveInvoiceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

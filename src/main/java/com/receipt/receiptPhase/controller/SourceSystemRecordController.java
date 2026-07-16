@@ -1,6 +1,6 @@
 package com.receipt.receiptPhase.controller;
 
-import com.receipt.receiptPhase.dto.SearchRequest;
+import com.receipt.receiptPhase.model.SearchRequest;
 import com.receipt.receiptPhase.repository.VesselProjection;
 import com.receipt.receiptPhase.repository.VoyageProjection;
 import com.receipt.receiptPhase.service.SourceSystemRecordService;

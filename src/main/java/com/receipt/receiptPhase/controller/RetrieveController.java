@@ -1,7 +1,7 @@
 package com.receipt.receiptPhase.controller;
 
-import com.receipt.receiptPhase.dto.RetrieveRequest;
-import com.receipt.receiptPhase.dto.RetrieveResponse;
+import com.receipt.receiptPhase.model.RetrieveRequest;
+import com.receipt.receiptPhase.model.RetrieveResponse;
 import com.receipt.receiptPhase.service.RetrieveService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
