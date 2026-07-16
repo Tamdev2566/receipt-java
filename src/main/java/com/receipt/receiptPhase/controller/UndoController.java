@@ -59,7 +59,7 @@ public class UndoController {
         try {
             undoService.processUndoPayment(selectedTransactionNos);
             response.put("status", "SUCCESS");
-            response.put("message", "This Receipt was successfully deleted.");
+            response.put("message", "Payment undone successfully..");
             return ResponseEntity.ok(response);
 
         } catch (Exception ex) {
