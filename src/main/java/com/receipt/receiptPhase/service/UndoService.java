@@ -80,6 +80,7 @@ public class UndoService {
         for (Map<String, Object> i : invoices) {
             UndoRequest.InvoiceDTO dto = new UndoRequest.InvoiceDTO();
             dto.transactionNo = Objects.toString(i.getOrDefault("transaction_no", i.get("Transaction_No")), "");
+            dto.transactionDate = Objects.toString(i.getOrDefault("transaction_date", i.get("Transaction_date")), "");
             dto.type = Objects.toString(i.getOrDefault("type", i.get("Type")), "");
             dto.referenceNo = Objects.toString(i.getOrDefault("reference_no", i.get("Reference_No")), "");
             dto.currency = Objects.toString(i.getOrDefault("currency", i.get("Currency")), "");

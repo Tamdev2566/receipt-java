@@ -28,7 +28,7 @@ public interface UndoRepository extends JpaRepository<ReceiptModal, String> {
                                                @Param("chequeNo") String chequeNo,
                                                @Param("blNo") String blNo);
 
-    @Query(value = "SELECT DISTINCT i2.Transaction_No, i2.BL_No, i2.Vessel_Name, i2.Voyage_No, i2.Customer_Name, " +
+    @Query(value = "SELECT DISTINCT i2.Transaction_No,i2.Transaction_Date, i2.BL_No, i2.Vessel_Name, i2.Voyage_No, i2.Customer_Name, " +
             "i2.Type, i2.Reference_Date, i2.Reference_No, i2.Currency, i2.Settlement_Amt, " +
             "i2.value_doc as SGD_Amount, i2.value_dual as USD_Amount, " +
             "i2.original_sgd, i2.original_usd, " + // கமா இங்கே சேர்க்கப்பட்டுள்ளது

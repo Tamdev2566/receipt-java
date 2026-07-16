@@ -50,6 +50,7 @@ public class UndoRequest {
 
     public static class InvoiceDTO {
         public String transactionNo;
+        public String transactionDate;
         public String type;
         public String referenceNo;
         public String currency;
