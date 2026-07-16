@@ -51,11 +51,11 @@ public class UndoService {
             dto.referenceNo = Objects.toString(r.getOrDefault("reference_no", r.get("Reference_No")), "");
             dto.currency = Objects.toString(r.getOrDefault("currency", r.get("Currency")), "");
 
-            // Safe BigDecimal Conversion
+
             dto.amount = new BigDecimal(Objects.toString(r.getOrDefault("amount", r.get("Amount")), "0"));
             dto.paidInvoiceTotal = new BigDecimal(Objects.toString(r.getOrDefault("paid_invoice_total", r.get("Paid_Invoice_Total")), "0"));
 
-            // Note: If transactionDate/receiptDate throws type errors, change DTO types to String and use Objects.toString()
+
             dto.transactionDate = Objects.toString(r.getOrDefault("transaction_date", r.get("Transaction_Date")), "");
             dto.receiptDate = Objects.toString(r.getOrDefault("receipt_date", r.get("Receipt_Date")), "");
 
@@ -74,6 +74,8 @@ public class UndoService {
             dto.settlementAmt = new BigDecimal(Objects.toString(i.getOrDefault("settlement_amt", i.get("Settlement_Amt")), "0"));
             dto.sgdAmount = new BigDecimal(Objects.toString(i.getOrDefault("sgd_amount", i.get("SGD_Amount")), "0"));
             dto.usdAmount = new BigDecimal(Objects.toString(i.getOrDefault("usd_amount", i.get("USD_Amount")), "0"));
+            dto.originalsgdAmount = new BigDecimal(Objects.toString(i.getOrDefault("original_sgd", i.get("original_sgd")), "0"));
+            dto.originalusdAmount = new BigDecimal(Objects.toString(i.getOrDefault("original_usd", i.get("original_usd")), "0"));
 
             invoiceList.add(dto);
         }

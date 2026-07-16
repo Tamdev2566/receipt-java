@@ -30,13 +30,13 @@ public interface UndoRepository extends JpaRepository<ReceiptModal, String> {
 
     @Query(value = "SELECT DISTINCT i2.Transaction_No, i2.BL_No, i2.Vessel_Name, i2.Voyage_No, i2.Customer_Name, " +
             "i2.Type, i2.Reference_Date, i2.Reference_No, i2.Currency, i2.Settlement_Amt, " +
-            "i2.value_doc as SGD_Amount, i2.value_dual as USD_Amount " +
+            "i2.value_doc as SGD_Amount, i2.value_dual as USD_Amount, " +
+            "i2.original_sgd, i2.original_usd " +
             "FROM Invoice i1 INNER JOIN Invoice i2 ON i1.Transaction_No = i2.Transaction_No " +
             "INNER JOIN Receipt r ON i1.Transaction_No = r.Transaction_No " +
             "WHERE (:invNo IS NULL OR i1.Transaction_No = :invNo) " +
             "AND (:chequeNo IS NULL OR r.Reference_No = :chequeNo) " +
             "AND (:blNo IS NULL OR i1.BL_No = :blNo) " +
-            // Fixed: 0 mapped to '0'
             "AND (r.Posted_to_coda IS NULL OR r.Posted_to_coda = '0') " +
             "AND (r.Status IS NULL OR r.Status = '0') ORDER BY i2.Transaction_No", nativeQuery = true)
     List<Map<String, Object>> retrieveInvoices(@Param("invNo") String invNo,

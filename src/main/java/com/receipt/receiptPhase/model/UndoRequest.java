@@ -56,6 +56,8 @@ public class UndoRequest {
         public BigDecimal settlementAmt;
         public BigDecimal sgdAmount;
         public BigDecimal usdAmount;
+        public BigDecimal originalsgdAmount;
+        public BigDecimal originalusdAmount;
     }
 
     public static class PartialDTO {
