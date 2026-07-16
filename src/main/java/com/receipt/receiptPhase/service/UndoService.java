@@ -122,6 +122,7 @@ public class UndoService {
         return response;
     }
 
+
     @Transactional
     public void processUndoPayment(List<String> transactionNumbers) {
         for (String transNo : transactionNumbers) {
@@ -133,18 +134,14 @@ public class UndoService {
             BigDecimal amount = new BigDecimal(receiptMap.getOrDefault("amount", receiptMap.get("Amount")).toString());
             String currency = Objects.toString(receiptMap.getOrDefault("currency", receiptMap.get("Currency")), "");
 
-
             String partialQuery = "SELECT BL_No, Reference_No FROM Partial WHERE Transaction_No = ?";
             List<Map<String, Object>> partialRows = jdbcTemplate.queryForList(partialQuery, transNo);
 
             for (Map<String, Object> pRow : partialRows) {
                 String blNo = Objects.toString(pRow.getOrDefault("bl_no", pRow.get("BL_No")), "");
-                String refNo = Objects.toString(pRow.getOrDefault("reference_no", pRow.get("Reference_No")), "");
-
-                String sourceName = (refNo.startsWith("CI") || refNo.startsWith("I")) ? "DocSys" : "Doc4All";
 
 
-                String rateQuery = "SELECT exchange_rate FROM " + sourceName + " WHERE BL_NO = ?";
+                String rateQuery = "SELECT exchange_rate FROM source_system_records WHERE BL_NO = ?";
                 BigDecimal exRate = jdbcTemplate.queryForObject(rateQuery, BigDecimal.class, blNo);
 
                 BigDecimal valueDoc = BigDecimal.ZERO;
@@ -152,19 +149,19 @@ public class UndoService {
 
                 if (exRate != null && exRate.compareTo(BigDecimal.ZERO) != 0) {
                     valueDoc = "SGD".equals(currency) ? amount : amount.multiply(exRate);
-
                     valueDual = "SGD".equals(currency) ? amount.divide(exRate, 2, RoundingMode.HALF_UP) : amount;
                 } else {
                     if ("SGD".equals(currency)) valueDoc = amount; else valueDual = amount;
                 }
-
 
                 String updatePartialSql = "UPDATE Partial SET Settlement_Amt = Settlement_Amt + ?, Value_doc = Value_doc + ?, Value_dual = Value_dual + ?, Transaction_Date = ? WHERE Transaction_No = ?";
                 jdbcTemplate.update(updatePartialSql, amount, valueDoc, valueDual, LocalDateTime.now(), transNo);
             }
 
 
-            undoRepository.softDeleteReceipt(transNo, LocalDateTime.now());
+            String formattedDate = LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            undoRepository.softDeleteReceipt(transNo, formattedDate);
+
 
             String invQuery = "SELECT BL_No, Reference_No FROM Invoice WHERE Transaction_No = ?";
             List<Map<String, Object>> invoiceRows = jdbcTemplate.queryForList(invQuery, transNo);
@@ -173,15 +170,12 @@ public class UndoService {
                 String blNo = Objects.toString(invRow.getOrDefault("bl_no", invRow.get("BL_No")), "");
                 String refNo = Objects.toString(invRow.getOrDefault("reference_no", invRow.get("Reference_No")), "");
 
-                String sourceName = (refNo.startsWith("CI") || refNo.startsWith("I")) ? "DocSys" : "Doc4All";
-
-
                 String checkActiveReceipts = "SELECT COUNT(*) FROM Invoice i INNER JOIN Receipt r ON i.Transaction_No = r.Transaction_No WHERE (r.Status = '0' OR r.Status IS NULL) AND i.BL_No = ? AND i.Reference_No = ?";
                 Integer activeCount = jdbcTemplate.queryForObject(checkActiveReceipts, Integer.class, blNo, refNo);
 
                 if (activeCount != null && activeCount == 0) {
 
-                    String resetIndicator = "UPDATE " + sourceName + " SET Indicator = '0' WHERE BL_No = ? AND Reference_No = ?";
+                    String resetIndicator = "UPDATE source_system_records SET Indicator = '0' WHERE BL_No = ? AND Reference_No = ?";
                     jdbcTemplate.update(resetIndicator, blNo, refNo);
                 }
             }

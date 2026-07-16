@@ -52,5 +52,5 @@ public interface UndoRepository extends JpaRepository<ReceiptModal, String> {
     @Modifying
 
     @Query(value = "UPDATE Receipt SET Status = '1', modified_date = :modDate WHERE Transaction_No = :transNo", nativeQuery = true)
-    void softDeleteReceipt(@Param("transNo") String transNo, @Param("modDate") LocalDateTime modDate);
+    void softDeleteReceipt(@Param("transNo") String transNo, @Param("modDate") String modDate);
 }
