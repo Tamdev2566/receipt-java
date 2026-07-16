@@ -1,6 +1,6 @@
 package com.receipt.receiptPhase.controller;
 
-import com.receipt.receiptPhase.dto.OutstandingRequest;
+import com.receipt.receiptPhase.model.OutstandingRequest;
 import com.receipt.receiptPhase.service.OutstandingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
