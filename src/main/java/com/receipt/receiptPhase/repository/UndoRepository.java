@@ -31,7 +31,7 @@ public interface UndoRepository extends JpaRepository<ReceiptModal, String> {
     @Query(value = "SELECT DISTINCT i2.Transaction_No,i2.Transaction_Date, i2.BL_No, i2.Vessel_Name, i2.Voyage_No, i2.Customer_Name, " +
             "i2.Type, i2.Reference_Date, i2.Reference_No, i2.Currency, i2.Settlement_Amt, " +
             "i2.value_doc as SGD_Amount, i2.value_dual as USD_Amount, " +
-            "i2.original_sgd, i2.original_usd, " + // கமா இங்கே சேர்க்கப்பட்டுள்ளது
+            "i2.original_sgd, i2.original_usd, " +
             "i2.partial, i2.write_off " +
             "FROM Invoice i1 INNER JOIN Invoice i2 ON i1.Transaction_No = i2.Transaction_No " +
             "INNER JOIN Receipt r ON i1.Transaction_No = r.Transaction_No " +
@@ -45,9 +45,8 @@ public interface UndoRepository extends JpaRepository<ReceiptModal, String> {
                                                @Param("blNo") String blNo);
 
     @Query(value = "SELECT p.* FROM partial p INNER JOIN receipt r ON p.transaction_no = r.transaction_no " +
-            "WHERE (r.status IS NULL OR r.status = '0') " +
-            "AND p.reference_no = :refNo ORDER BY p.transaction_date", nativeQuery = true)
-
+            "WHERE (p.parital_status = '0') " +
+            "AND p.transaction_no = :refNo ORDER BY p.transaction_date", nativeQuery = true)
     List<Map<String, Object>> getPartialDetails(@Param("refNo") String refNo);
 
     @Modifying
