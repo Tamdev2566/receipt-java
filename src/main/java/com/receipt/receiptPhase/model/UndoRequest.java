@@ -1,4 +1,4 @@
-package com.receipt.receiptPhase.dto;
+package com.receipt.receiptPhase.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

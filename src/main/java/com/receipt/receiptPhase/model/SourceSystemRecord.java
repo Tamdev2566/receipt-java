@@ -62,10 +62,6 @@ public class SourceSystemRecord {
     @Column(name = "source")
     private String source;
 
-    // ==========================================
-    //          GETTERS AND SETTERS
-    // ==========================================
-
     public String getBlNo() { return blNo; }
     public void setBlNo(String blNo) { this.blNo = blNo; }
 

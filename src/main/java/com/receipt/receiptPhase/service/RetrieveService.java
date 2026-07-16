@@ -1,7 +1,7 @@
 package com.receipt.receiptPhase.service;
 
-import com.receipt.receiptPhase.dto.RetrieveRequest;
-import com.receipt.receiptPhase.dto.RetrieveResponse;
+import com.receipt.receiptPhase.model.RetrieveRequest;
+import com.receipt.receiptPhase.model.RetrieveResponse;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;

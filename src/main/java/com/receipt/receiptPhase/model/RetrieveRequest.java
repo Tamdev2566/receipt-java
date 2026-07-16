@@ -1,4 +1,4 @@
-package com.receipt.receiptPhase.dto;
+package com.receipt.receiptPhase.model;
 
 public class RetrieveRequest {
     private String invoiceNo;

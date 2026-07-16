@@ -1,6 +1,6 @@
 package com.receipt.receiptPhase.service;
 
-import com.receipt.receiptPhase.dto.RemoveInvoiceRequest;
+import com.receipt.receiptPhase.model.RemoveInvoiceRequest;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;

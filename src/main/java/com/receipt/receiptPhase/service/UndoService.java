@@ -1,6 +1,6 @@
 package com.receipt.receiptPhase.service;
 
-import com.receipt.receiptPhase.dto.UndoRequest;
+import com.receipt.receiptPhase.model.UndoRequest;
 import com.receipt.receiptPhase.repository.UndoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;

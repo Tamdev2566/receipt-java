@@ -1,6 +1,6 @@
 package com.receipt.receiptPhase.service;
 
-import com.receipt.receiptPhase.dto.OutstandingRequest;
+import com.receipt.receiptPhase.model.OutstandingRequest;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
