@@ -58,6 +58,8 @@ public class UndoRequest {
         public BigDecimal usdAmount;
         public BigDecimal originalsgdAmount;
         public BigDecimal originalusdAmount;
+        public BigDecimal partial;
+        public BigDecimal writeOff;
     }
 
     public static class PartialDTO {

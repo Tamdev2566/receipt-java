@@ -23,6 +23,19 @@ public class UndoService {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    private BigDecimal safeBigDecimal(Object value) {
+        if (value == null) return BigDecimal.ZERO;
+        String val = value.toString().trim();
+        if (val.isEmpty() || val.equalsIgnoreCase("null") || val.contains("t")) { // "t" மற்றும் பிற பிழைகளை தவிர்க்க
+            return BigDecimal.ZERO;
+        }
+        try {
+            return new BigDecimal(val);
+        } catch (NumberFormatException e) {
+            return BigDecimal.ZERO;
+        }
+    }
+
     public UndoRequest retrieveRecords(String invNo, String chequeNo, String blNo) {
         List<Map<String, Object>> receipts = undoRepository.retrieveReceipts(invNo, chequeNo, blNo);
         List<Map<String, Object>> invoices = undoRepository.retrieveInvoices(invNo, chequeNo, blNo);
@@ -70,12 +83,13 @@ public class UndoService {
             dto.type = Objects.toString(i.getOrDefault("type", i.get("Type")), "");
             dto.referenceNo = Objects.toString(i.getOrDefault("reference_no", i.get("Reference_No")), "");
             dto.currency = Objects.toString(i.getOrDefault("currency", i.get("Currency")), "");
-
-            dto.settlementAmt = new BigDecimal(Objects.toString(i.getOrDefault("settlement_amt", i.get("Settlement_Amt")), "0"));
-            dto.sgdAmount = new BigDecimal(Objects.toString(i.getOrDefault("sgd_amount", i.get("SGD_Amount")), "0"));
-            dto.usdAmount = new BigDecimal(Objects.toString(i.getOrDefault("usd_amount", i.get("USD_Amount")), "0"));
-            dto.originalsgdAmount = new BigDecimal(Objects.toString(i.getOrDefault("original_sgd", i.get("original_sgd")), "0"));
-            dto.originalusdAmount = new BigDecimal(Objects.toString(i.getOrDefault("original_usd", i.get("original_usd")), "0"));
+            dto.settlementAmt = safeBigDecimal(i.get("Settlement_Amt"));
+            dto.sgdAmount = safeBigDecimal(i.get("SGD_Amount"));
+            dto.usdAmount = safeBigDecimal(i.get("USD_Amount"));
+            dto.originalsgdAmount = safeBigDecimal(i.get("original_sgd"));
+            dto.originalusdAmount = safeBigDecimal(i.get("original_usd"));
+            dto.partial = safeBigDecimal(i.get("partial"));
+            dto.writeOff = safeBigDecimal(i.get("write_off"));
 
             invoiceList.add(dto);
         }
