@@ -1,136 +1,172 @@
 package com.receipt.receiptPhase.service;
 
 import com.receipt.receiptPhase.dto.UndoRequest;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import com.receipt.receiptPhase.repository.UndoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class UndoService {
 
-    private final NamedParameterJdbcTemplate jdbcTemplate;
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    @Autowired
+    private UndoRepository undoRepository;
 
-    public UndoService(NamedParameterJdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
-    @Transactional(rollbackFor = Exception.class)
-    public void processUndo(UndoRequest request) {
+    public UndoRequest retrieveRecords(String invNo, String chequeNo, String blNo) {
+        List<Map<String, Object>> receipts = undoRepository.retrieveReceipts(invNo, chequeNo, blNo);
+        List<Map<String, Object>> invoices = undoRepository.retrieveInvoices(invNo, chequeNo, blNo);
 
-        if (request.getReceipts() == null || request.getReceipts().isEmpty()) {
-            throw new IllegalArgumentException("No receipts provided for undo.");
+
+        if (receipts.isEmpty() || invoices.isEmpty()) {
+            return null;
         }
 
-        String currentDate = LocalDateTime.now().format(formatter);
+        UndoRequest response = new UndoRequest();
+        Map<String, Object> baseRow = invoices.get(0);
 
-        for (UndoRequest.UndoReceiptItem item : request.getReceipts()) {
-            String transNo = item.getTransactionNo();
-            Double amount = item.getAmount();
-            String currency = item.getCurrency();
+        String actualBlNo = Objects.toString(baseRow.getOrDefault("bl_no", baseRow.get("BL_No")), "");
+        String actualRefNo = Objects.toString(baseRow.getOrDefault("reference_no", baseRow.get("Reference_No")), "");
 
-            String partialQuery = "SELECT bl_no, reference_no FROM partial WHERE transaction_no = :transNo";
-            List<Map<String, Object>> partialRecords = jdbcTemplate.queryForList(partialQuery, new MapSqlParameterSource("transNo", transNo));
-
-            for (Map<String, Object> partial : partialRecords) {
-                String blNo = (String) partial.get("bl_no");
-                String refNo = (String) partial.get("reference_no");
-
-                String sourceName = (refNo != null && (refNo.startsWith("CI") || refNo.startsWith("I"))) ? "DocSys" : "Doc4All";
+        response.setBlNo(actualBlNo);
+        response.setVesselName(Objects.toString(baseRow.getOrDefault("vessel_name", baseRow.get("Vessel_Name")), ""));
+        response.setVoyageNo(Objects.toString(baseRow.getOrDefault("voyage_no", baseRow.get("Voyage_No")), ""));
+        response.setCustomerName(Objects.toString(baseRow.getOrDefault("customer_name", baseRow.get("Customer_Name")), ""));
 
 
-                String exRateQuery = "SELECT exchange_rate FROM source_system_records WHERE bl_no = :blNo LIMIT 1";
-                List<Map<String, Object>> exRateResult = jdbcTemplate.queryForList(exRateQuery, new MapSqlParameterSource("blNo", blNo));
+        List<UndoRequest.ReceiptDTO> receiptList = new java.util.ArrayList<>();
+        for (Map<String, Object> r : receipts) {
+            UndoRequest.ReceiptDTO dto = new UndoRequest.ReceiptDTO();
+            dto.transactionNo = Objects.toString(r.getOrDefault("transaction_no", r.get("Transaction_No")), "");
+            dto.referenceNo = Objects.toString(r.getOrDefault("reference_no", r.get("Reference_No")), "");
+            dto.currency = Objects.toString(r.getOrDefault("currency", r.get("Currency")), "");
 
-                double exRate = 0.0;
-                if (!exRateResult.isEmpty() && exRateResult.get(0).get("exchange_rate") != null) {
-                    exRate = ((Number) exRateResult.get(0).get("exchange_rate")).doubleValue();
-                }
+            // Safe BigDecimal Conversion
+            dto.amount = new BigDecimal(Objects.toString(r.getOrDefault("amount", r.get("Amount")), "0"));
+            dto.paidInvoiceTotal = new BigDecimal(Objects.toString(r.getOrDefault("paid_invoice_total", r.get("Paid_Invoice_Total")), "0"));
 
-                String activeCond = " AND (r.status IS NULL OR r.status = '0')";
-                String invCountQuery = "SELECT i.* FROM invoice i INNER JOIN receipt r ON i.transaction_no = r.transaction_no WHERE i.bl_no = :blNo AND i.reference_no = :refNo" + activeCond;
-                String partQuery = "SELECT p.* FROM partial p INNER JOIN receipt r ON p.transaction_no = r.transaction_no WHERE p.bl_no = :blNo AND p.reference_no = :refNo" + activeCond + " ORDER BY p.transaction_date ASC";
+            // Note: If transactionDate/receiptDate throws type errors, change DTO types to String and use Objects.toString()
+            dto.transactionDate = Objects.toString(r.getOrDefault("transaction_date", r.get("Transaction_Date")), "");
+            dto.receiptDate = Objects.toString(r.getOrDefault("receipt_date", r.get("Receipt_Date")), "");
 
-                MapSqlParameterSource filterParams = new MapSqlParameterSource();
-                filterParams.addValue("blNo", blNo);
-                filterParams.addValue("refNo", refNo);
+            receiptList.add(dto);
+        }
+        response.setReceipts(receiptList);
 
-                List<Map<String, Object>> invList = jdbcTemplate.queryForList(invCountQuery, filterParams);
-                List<Map<String, Object>> partList = jdbcTemplate.queryForList(partQuery, filterParams);
+        List<UndoRequest.InvoiceDTO> invoiceList = new java.util.ArrayList<>();
+        for (Map<String, Object> i : invoices) {
+            UndoRequest.InvoiceDTO dto = new UndoRequest.InvoiceDTO();
+            dto.transactionNo = Objects.toString(i.getOrDefault("transaction_no", i.get("Transaction_No")), "");
+            dto.type = Objects.toString(i.getOrDefault("type", i.get("Type")), "");
+            dto.referenceNo = Objects.toString(i.getOrDefault("reference_no", i.get("Reference_No")), "");
+            dto.currency = Objects.toString(i.getOrDefault("currency", i.get("Currency")), "");
 
-                double valueDoc = 0.0, valueDual = 0.0;
+            dto.settlementAmt = new BigDecimal(Objects.toString(i.getOrDefault("settlement_amt", i.get("Settlement_Amt")), "0"));
+            dto.sgdAmount = new BigDecimal(Objects.toString(i.getOrDefault("sgd_amount", i.get("SGD_Amount")), "0"));
+            dto.usdAmount = new BigDecimal(Objects.toString(i.getOrDefault("usd_amount", i.get("USD_Amount")), "0"));
+
+            invoiceList.add(dto);
+        }
+        response.setInvoices(invoiceList);
 
 
-                if (exRate == 0.0) {
-                    valueDoc = "SGD".equalsIgnoreCase(currency) ? amount : 0.0;
-                    valueDual = "SGD".equalsIgnoreCase(currency) ? 0.0 : amount;
+        List<Map<String, Object>> partials = undoRepository.getPartialDetails(actualRefNo);
+        List<UndoRequest.PartialDTO> partialList = new java.util.ArrayList<>();
+
+        if (partials != null && !partials.isEmpty()) {
+            for (Map<String, Object> p : partials) {
+                UndoRequest.PartialDTO dto = new UndoRequest.PartialDTO();
+                dto.transactionNo = Objects.toString(p.getOrDefault("transaction_no", p.get("Transaction_No")), "");
+                dto.type = Objects.toString(p.getOrDefault("type", p.get("Type")), "");
+                dto.referenceNo = Objects.toString(p.getOrDefault("reference_no", p.get("Reference_No")), "");
+
+
+                dto.currency = Objects.toString(p.getOrDefault("currency_code", p.get("Currency_Code")), "");
+
+                dto.settlementAmt = new BigDecimal(Objects.toString(p.getOrDefault("settlement_amt", p.get("Settlement_Amt")), "0"));
+                dto.sgdAmount = new BigDecimal(Objects.toString(p.getOrDefault("value_doc", p.get("Value_doc")), "0"));
+                dto.usdAmount = new BigDecimal(Objects.toString(p.getOrDefault("value_dual", p.get("Value_dual")), "0"));
+
+                partialList.add(dto);
+            }
+        }
+        response.setOutstandings(partialList);
+
+        return response;
+    }
+
+    @Transactional
+    public void processUndoPayment(List<String> transactionNumbers) {
+        for (String transNo : transactionNumbers) {
+
+
+            String receiptQuery = "SELECT Amount, currency_code as Currency, Reference_No FROM Receipt WHERE Transaction_No = ?";
+            Map<String, Object> receiptMap = jdbcTemplate.queryForMap(receiptQuery, transNo);
+
+            BigDecimal amount = new BigDecimal(receiptMap.getOrDefault("amount", receiptMap.get("Amount")).toString());
+            String currency = Objects.toString(receiptMap.getOrDefault("currency", receiptMap.get("Currency")), "");
+
+
+            String partialQuery = "SELECT BL_No, Reference_No FROM Partial WHERE Transaction_No = ?";
+            List<Map<String, Object>> partialRows = jdbcTemplate.queryForList(partialQuery, transNo);
+
+            for (Map<String, Object> pRow : partialRows) {
+                String blNo = Objects.toString(pRow.getOrDefault("bl_no", pRow.get("BL_No")), "");
+                String refNo = Objects.toString(pRow.getOrDefault("reference_no", pRow.get("Reference_No")), "");
+
+                String sourceName = (refNo.startsWith("CI") || refNo.startsWith("I")) ? "DocSys" : "Doc4All";
+
+
+                String rateQuery = "SELECT exchange_rate FROM " + sourceName + " WHERE BL_NO = ?";
+                BigDecimal exRate = jdbcTemplate.queryForObject(rateQuery, BigDecimal.class, blNo);
+
+                BigDecimal valueDoc = BigDecimal.ZERO;
+                BigDecimal valueDual = BigDecimal.ZERO;
+
+                if (exRate != null && exRate.compareTo(BigDecimal.ZERO) != 0) {
+                    valueDoc = "SGD".equals(currency) ? amount : amount.multiply(exRate);
+
+                    valueDual = "SGD".equals(currency) ? amount.divide(exRate, 2, RoundingMode.HALF_UP) : amount;
                 } else {
-                    valueDoc = "SGD".equalsIgnoreCase(currency) ? amount : amount * exRate;
-                    valueDual = "SGD".equalsIgnoreCase(currency) ? amount / exRate : amount;
+                    if ("SGD".equals(currency)) valueDoc = amount; else valueDual = amount;
                 }
 
-                if (invList.size() == partList.size() && partList.size() > 1) {
 
-                    Map<String, Object> lastPartial = partList.get(partList.size() - 1);
-                    String lastTransNo = (String) lastPartial.get("transaction_no");
-
-                    String updatePartial = "UPDATE partial SET settlement_amount = settlement_amount + :amt, value_doc = value_doc + :vDoc, value_dual = value_dual + :vDual, modified_date = :modDate WHERE transaction_no = :transNo";
-                    MapSqlParameterSource updateParams = new MapSqlParameterSource();
-                    updateParams.addValue("amt", amount);
-                    updateParams.addValue("vDoc", valueDoc);
-                    updateParams.addValue("vDual", valueDual);
-                    updateParams.addValue("modDate", currentDate);
-                    updateParams.addValue("transNo", lastTransNo);
-
-                    jdbcTemplate.update(updatePartial, updateParams);
-
-                } else if (!invList.isEmpty()) {
-
-                    Map<String, Object> lastInv = invList.get(invList.size() - 1);
-                    String insertPartial = "INSERT INTO partial (transaction_no, transaction_date, source, bl_no, vessel_code, vessel_name, voyage_no, customer_name, type, reference_date, reference_no, currency_code, settlement_amount, value_doc, value_dual, original_sgd, original_usd, parital_status, write_off_status) " +
-                            "VALUES (:tNo, :tDate, :src, :bNo, :vCode, :vName, :voyNo, :cName, :type, :rDate, :rNo, :curr, :amt, :vDoc, :vDual, 0, 0, '0', '0')";
-
-                    MapSqlParameterSource insertParams = new MapSqlParameterSource();
-                    insertParams.addValue("tNo", lastInv.get("transaction_no"));
-                    insertParams.addValue("tDate", currentDate);
-                    insertParams.addValue("src", sourceName);
-                    insertParams.addValue("bNo", blNo);
-                    insertParams.addValue("vCode", lastInv.get("vessel_code"));
-                    insertParams.addValue("vName", lastInv.get("vessel_name"));
-                    insertParams.addValue("voyNo", lastInv.get("voyage_no"));
-                    insertParams.addValue("cName", lastInv.get("customer_name"));
-                    insertParams.addValue("type", lastInv.get("type"));
-                    insertParams.addValue("rDate", lastInv.get("reference_date"));
-                    insertParams.addValue("rNo", lastInv.get("reference_no"));
-                    insertParams.addValue("curr", currency);
-                    insertParams.addValue("amt", amount);
-                    insertParams.addValue("vDoc", valueDoc);
-                    insertParams.addValue("vDual", valueDual);
-
-                    jdbcTemplate.update(insertPartial, insertParams);
-
-
-                    jdbcTemplate.update("UPDATE invoice SET partial = '1' WHERE transaction_no = :tNo", new MapSqlParameterSource("tNo", lastInv.get("transaction_no")));
-                }
+                String updatePartialSql = "UPDATE Partial SET Settlement_Amt = Settlement_Amt + ?, Value_doc = Value_doc + ?, Value_dual = Value_dual + ?, Transaction_Date = ? WHERE Transaction_No = ?";
+                jdbcTemplate.update(updatePartialSql, amount, valueDoc, valueDual, LocalDateTime.now(), transNo);
             }
 
 
-            String updateReceipt = "UPDATE receipt SET status = '1', modified_date = :modDate WHERE transaction_no = :transNo";
-            jdbcTemplate.update(updateReceipt, new MapSqlParameterSource("modDate", currentDate).addValue("transNo", transNo));
+            undoRepository.softDeleteReceipt(transNo, LocalDateTime.now());
+
+            String invQuery = "SELECT BL_No, Reference_No FROM Invoice WHERE Transaction_No = ?";
+            List<Map<String, Object>> invoiceRows = jdbcTemplate.queryForList(invQuery, transNo);
+
+            for (Map<String, Object> invRow : invoiceRows) {
+                String blNo = Objects.toString(invRow.getOrDefault("bl_no", invRow.get("BL_No")), "");
+                String refNo = Objects.toString(invRow.getOrDefault("reference_no", invRow.get("Reference_No")), "");
+
+                String sourceName = (refNo.startsWith("CI") || refNo.startsWith("I")) ? "DocSys" : "Doc4All";
 
 
-            String invoiceQuery = "SELECT bl_no, reference_no FROM invoice WHERE transaction_no = :transNo";
-            List<Map<String, Object>> invoices = jdbcTemplate.queryForList(invoiceQuery, new MapSqlParameterSource("transNo", transNo));
+                String checkActiveReceipts = "SELECT COUNT(*) FROM Invoice i INNER JOIN Receipt r ON i.Transaction_No = r.Transaction_No WHERE (r.Status = '0' OR r.Status IS NULL) AND i.BL_No = ? AND i.Reference_No = ?";
+                Integer activeCount = jdbcTemplate.queryForObject(checkActiveReceipts, Integer.class, blNo, refNo);
 
-            for (Map<String, Object> inv : invoices) {
-                String resetIndicator = "UPDATE source_system_records SET indicator = 0 WHERE bl_no = :blNo";
-                jdbcTemplate.update(resetIndicator, new MapSqlParameterSource("blNo", inv.get("bl_no")));
+                if (activeCount != null && activeCount == 0) {
+
+                    String resetIndicator = "UPDATE " + sourceName + " SET Indicator = '0' WHERE BL_No = ? AND Reference_No = ?";
+                    jdbcTemplate.update(resetIndicator, blNo, refNo);
+                }
             }
         }
     }

@@ -1,23 +1,70 @@
 package com.receipt.receiptPhase.dto;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class UndoRequest {
-    private List<UndoReceiptItem> receipts;
 
-    public List<UndoReceiptItem> getReceipts() { return receipts; }
-    public void setReceipts(List<UndoReceiptItem> receipts) { this.receipts = receipts; }
+    private String blNo;
+    private String vesselName;
+    private String voyageNo;
+    private String customerName;
 
-    public static class UndoReceiptItem {
-        private String transactionNo;
-        private Double amount;
-        private String currency;
+    private List<ReceiptDTO> receipts;
+    private List<InvoiceDTO> invoices;
+    private List<PartialDTO> outstandings;
 
-        public String getTransactionNo() { return transactionNo; }
-        public void setTransactionNo(String transactionNo) { this.transactionNo = transactionNo; }
-        public Double getAmount() { return amount; }
-        public void setAmount(Double amount) { this.amount = amount; }
-        public String getCurrency() { return currency; }
-        public void setCurrency(String currency) { this.currency = currency; }
+    public String getBlNo() { return blNo; }
+    public void setBlNo(String blNo) { this.blNo = blNo; }
+
+    public String getVesselName() { return vesselName; }
+    public void setVesselName(String vesselName) { this.vesselName = vesselName; }
+
+    public String getVoyageNo() { return voyageNo; }
+    public void setVoyageNo(String voyageNo) { this.voyageNo = voyageNo; }
+
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
+
+    public List<ReceiptDTO> getReceipts() { return receipts; }
+    public void setReceipts(List<ReceiptDTO> receipts) { this.receipts = receipts; }
+
+    public List<InvoiceDTO> getInvoices() { return invoices; }
+    public void setInvoices(List<InvoiceDTO> invoices) { this.invoices = invoices; }
+
+    public List<PartialDTO> getOutstandings() { return outstandings; }
+    public void setOutstandings(List<PartialDTO> outstandings) { this.outstandings = outstandings; }
+
+
+
+    public static class ReceiptDTO {
+        public String transactionNo;
+        public String transactionDate;
+        public String receiptDate;
+        public String referenceNo;
+        public String currency;
+        public BigDecimal amount;
+        public BigDecimal paidInvoiceTotal;
+    }
+
+    public static class InvoiceDTO {
+        public String transactionNo;
+        public String type;
+        public String referenceNo;
+        public String currency;
+        public BigDecimal settlementAmt;
+        public BigDecimal sgdAmount;
+        public BigDecimal usdAmount;
+    }
+
+    public static class PartialDTO {
+        public String transactionNo;
+        public String type;
+        public String referenceNo;
+        public String currency;
+        public BigDecimal settlementAmt;
+        public BigDecimal sgdAmount;
+        public BigDecimal usdAmount;
     }
 }
