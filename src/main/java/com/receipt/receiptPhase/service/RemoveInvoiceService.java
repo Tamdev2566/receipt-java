@@ -37,8 +37,9 @@ public class RemoveInvoiceService {
             jdbcTemplate.update("DELETE FROM partial WHERE reference_no = ?", refNo);
 
 
-            String auditSql = "INSERT INTO RECEIPT_AUDITLOG (REMOVED_INVOICE, USER_ID, ACTION_DATE, REASON) VALUES (?, ?, ?, ?)";
+            String auditSql = "INSERT INTO RECEIPT_AUDITLOG (REMOVED_INVOICE_NO, ACTION_CREATED_USER, ACTION_DATE, REASON) VALUES (?, ?, ?, ?)";
             jdbcTemplate.update(auditSql, refNo, userId, actionDate, remark);
+
         }
     }
 }
