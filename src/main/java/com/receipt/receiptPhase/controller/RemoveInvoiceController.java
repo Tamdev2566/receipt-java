@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,16 +26,20 @@ public class RemoveInvoiceController {
 
 
     @PostMapping("/remove")
-    public ResponseEntity<String> removeInvoices(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<Map<String, String>> removeInvoices(@RequestBody Map<String, Object> request) {
         List<String> referenceNos = (List<String>) request.get("referenceNos");
         String userId = (String) request.get("userId");
         String remark = (String) request.get("remark");
 
         if (referenceNos == null || referenceNos.isEmpty()) {
-            return ResponseEntity.badRequest().body("No invoices selected.");
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "No invoices selected.");
+            return ResponseEntity.badRequest().body(errorResponse);
         }
 
         invoiceService.removeInvoices(referenceNos, userId, remark);
-        return ResponseEntity.ok("Successfully removed invoices.");
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Successfully removed invoices.");
+        return ResponseEntity.ok(response);
     }
 }
