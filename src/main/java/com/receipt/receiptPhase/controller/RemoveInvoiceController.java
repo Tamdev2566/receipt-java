@@ -1,41 +1,40 @@
 package com.receipt.receiptPhase.controller;
 
-import com.receipt.receiptPhase.model.RemoveInvoiceRequest;
 import com.receipt.receiptPhase.service.RemoveInvoiceService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/removeInvoices")
 public class RemoveInvoiceController {
 
-    private final RemoveInvoiceService removeInvoiceService;
+    @Autowired
+    private RemoveInvoiceService invoiceService;
 
-    public RemoveInvoiceController(RemoveInvoiceService removeInvoiceService) {
-        this.removeInvoiceService = removeInvoiceService;
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchInvoices(@RequestParam String customer,
+                                            @RequestParam String vessel,
+                                            @RequestParam String voyage) {
+        return ResponseEntity.ok(invoiceService.getInvoices(customer, vessel, voyage));
     }
 
-    @PostMapping("/receiptRemoveInvoice")
-    public ResponseEntity<Map<String, String>> removeInvoice(@RequestBody RemoveInvoiceRequest request) {
-        Map<String, String> response = new HashMap<>();
-        try {
-            removeInvoiceService.removeInvoices(request);
-            response.put("status", "success");
-            response.put("message", "Successfully removed Invoice no!");
-            return ResponseEntity.ok(response);
 
-        } catch (IllegalArgumentException e) {
-            response.put("status", "warning");
-            response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+    @PostMapping("/remove")
+    public ResponseEntity<String> removeInvoices(@RequestBody Map<String, Object> request) {
+        List<String> referenceNos = (List<String>) request.get("referenceNos");
+        String userId = (String) request.get("userId");
+        String remark = (String) request.get("remark");
 
-        } catch (Exception e) {
-            response.put("status", "error");
-            response.put("message", "An error occurred during removal: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(response);
+        if (referenceNos == null || referenceNos.isEmpty()) {
+            return ResponseEntity.badRequest().body("No invoices selected.");
         }
+
+        invoiceService.removeInvoices(referenceNos, userId, remark);
+        return ResponseEntity.ok("Successfully removed invoices.");
     }
 }
