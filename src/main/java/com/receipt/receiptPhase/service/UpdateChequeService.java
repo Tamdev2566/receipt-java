@@ -39,8 +39,8 @@ public class UpdateChequeService {
         jdbcTemplate.update(sql, newNo, oldNo, transNo);
 
 
-        String auditSql = "INSERT INTO RECEIPT_AUDITLOG (ORIGINAL_CHEQUENO, TRANSACTION_NO, NEW_CHEQUENO, USER_ID, ACTION_DATE, REASON, PAYMENT_MODE) " +
-                "VALUES (?, ?, ?, ?, ?, ?, 'Cheque')";
+        String auditSql = "INSERT INTO RECEIPT_AUDITLOG (original_cheque_no, transaction_no, new_cheque_no, user_id, action_date, reason, payment_mode) " +
+                "VALUES (?, ?, ?, ?, ?, ?, 'Cheque')";;
         jdbcTemplate.update(auditSql, oldNo, transNo, newNo, userId, LocalDateTime.now(), remark);
     }
 }
