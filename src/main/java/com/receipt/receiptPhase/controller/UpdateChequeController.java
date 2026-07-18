@@ -10,7 +10,7 @@
 
     @RestController
     @RequestMapping("/api/cheque")
-    public class UpdateChequeController {
+    public class        UpdateChequeController {
         @Autowired
         private UpdateChequeService chequeService;
 
