@@ -27,14 +27,19 @@
         }
 
         @PostMapping("/update")
-        public ResponseEntity<String> updateCheque(@RequestBody Map<String, String> payload) {
-            chequeService.updateChequeNo(
-                    payload.get("originalChequeNo"),
-                    payload.get("newChequeNo"),
-                    payload.get("transactionNo"),
-                    payload.get("remark"),
-                    payload.get("userId")
-            );
-            return ResponseEntity.ok("Cheque Number Updated Successfully");
+        public ResponseEntity<Map<String, String>> updateCheque(@RequestBody Map<String, String> payload) {
+            try {
+                chequeService.updateChequeNo(
+                        payload.get("originalChequeNo"),
+                        payload.get("newChequeNo"),
+                        payload.get("transactionNo"),
+                        payload.get("remark"),
+                        payload.get("userId")
+                );
+                return ResponseEntity.ok(Map.of("message", "Cheque Number Updated Successfully"));
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("message", "Update Failed: " + e.getMessage()));
+            }
         }
     }
