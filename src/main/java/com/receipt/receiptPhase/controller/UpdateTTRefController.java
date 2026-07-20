@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -17,12 +18,19 @@ public class UpdateTTRefController {
 
     @GetMapping("/search")
     public ResponseEntity<?> searchTT(@RequestParam String ttNo) {
-        return ResponseEntity.ok(ttRefService.findByTTNo(ttNo));
+        Map<String, Object> result = ttRefService.findByTTNo(ttNo);
+
+        if (result == null) {
+            return ResponseEntity.ok(Map.of("message", "No record found"));
+        }
+
+        return ResponseEntity.ok(result);
     }
 
 
+
     @PostMapping("/update")
-    public ResponseEntity<String> updateTT(@RequestBody Map<String, String> payload) {
+    public ResponseEntity<Map<String, String>> updateTT(@RequestBody Map<String, String> payload) {
         ttRefService.updateTTNo(
                 payload.get("originalTTNo"),
                 payload.get("newTTNo"),
@@ -30,6 +38,11 @@ public class UpdateTTRefController {
                 payload.get("remark"),
                 payload.get("userId")
         );
-        return ResponseEntity.ok("T/T Reference Number Updated Successfully");
+
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "T/T Reference Number Updated Successfully");
+
+        return ResponseEntity.ok(response);
     }
 }

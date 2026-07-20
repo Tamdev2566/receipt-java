@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface ReceiptRepository extends JpaRepository<ReceiptModal, String> {
@@ -86,61 +85,6 @@ public interface ReceiptRepository extends JpaRepository<ReceiptModal, String> {
             """, nativeQuery = true)
     List<ReceiptModal> findActiveReceipts();
 
-    @Query(value = """
-            SELECT COALESCE(MAX(CAST(SUBSTRING(transaction_no FROM 4) AS INTEGER)), 0)
-            FROM receipt
-            WHERE transaction_no ~ '^RCT[0-9]+$'
-            """, nativeQuery = true)
-    int findLatestReceiptNumber();
-
-    @Query(value = """
-            SELECT *
-            FROM receipt
-            WHERE transaction_no = :transactionNo
-            """, nativeQuery = true)
-    Optional<ReceiptModal> findByTransactionNo(@Param("transactionNo") String transactionNo);
-
-    @Modifying
-    @Query(value = """
-            UPDATE receipt
-            SET amount = :amount,
-                bank = :bank,
-                payment_mode = :paymentMode,
-                modified_date = :modifiedDate
-            WHERE transaction_no = :transactionNo
-            """, nativeQuery = true)
-    int updateReceiptFields(@Param("transactionNo") String transactionNo,
-                            @Param("amount") BigDecimal amount,
-                            @Param("bank") String bank,
-                            @Param("paymentMode") String paymentMode,
-                            @Param("modifiedDate") String modifiedDate);
-
-    @Modifying
-    @Query(value = """
-            UPDATE receipt
-            SET status = B'0',
-                modified_date = :modifiedDate
-            WHERE transaction_no = :transactionNo
-            """, nativeQuery = true)
-    int markReceiptInactive(@Param("transactionNo") String transactionNo,
-                            @Param("modifiedDate") String modifiedDate);
-
-    @Query(value = """
-            SELECT COUNT(*) AS "totalReceipts",
-                   COUNT(*) FILTER (WHERE status = B'1') AS "activeReceipts",
-                   COUNT(*) FILTER (WHERE status = B'0' OR status IS NULL) AS "inactiveReceipts",
-                   COALESCE(SUM(CASE WHEN status = B'1' THEN amount ELSE 0 END), 0) AS "totalAmount"
-            FROM receipt
-            """, nativeQuery = true)
-    DashboardStatsProjection getDashboardStats();
-
     @Query(value = "SELECT MAX(transaction_no) FROM receipt WHERE transaction_no LIKE :datePrefix", nativeQuery = true)
     String findMaxTransactionNoForDate(@Param("datePrefix") String datePrefix);
-
-    interface DashboardStatsProjection {
-        long getTotalReceipts();
-        long getActiveReceipts();
-        long getInactiveReceipts();
-        BigDecimal getTotalAmount();
-    }
 }
