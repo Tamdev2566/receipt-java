@@ -20,7 +20,7 @@ public class ChequeBoxController {
 
     @PostMapping("/cheque-numbers")
     public ResponseEntity<List<Map<String, Object>>> searchChequeNumbers(@RequestBody Map<String, String> payload) {
-        String keyword = payload.getOrDefault("chequeNo", "");
+        String keyword = payload.getOrDefault("search", "");
 
         String sql = "SELECT DISTINCT CHEQUE_NO FROM CHEQUE_READER " +
                 "WHERE CHEQUE_NO <> '' " +
@@ -43,7 +43,7 @@ public class ChequeBoxController {
     @PostMapping("/full-cheque-numbers")
     public ResponseEntity<List<Map<String, Object>>> searchFullChequeNumbers(@RequestBody Map<String, String> payload) {
         String chequeNo = payload.get("chequeNo");
-        String fullChequeKeyword = payload.getOrDefault("fullChequeNo", "");
+        String fullChequeKeyword = payload.getOrDefault("search", "");
 
         String sql = "SELECT DISTINCT FULL_CHEQUE_NO FROM CHEQUE_READER " +
                 "WHERE CHEQUE_NO = ? " +
