@@ -130,7 +130,7 @@ public class ReceiptService {
         receipt.setReceiptTotal(decimalValue(request, "receiptTotal", "receipt_total", "amount"));
         receipt.setBalanceAmount(decimalValueOrZero(request, "balanceAmount", "balance_amount", "balance"));
         receipt.setPostedToCoda(booleanValue(request, "postedToCoda", "posted_to_coda"));
-        receipt.setStatus(true);
+        receipt.setStatus(false);
         receipt.setBank(requiredString(request, "bank"));
         receipt.setCreatedDate(now);
         receipt.setCreatedUser(stringValue(request, "createdUser", "created_user", "userId", "user_id"));

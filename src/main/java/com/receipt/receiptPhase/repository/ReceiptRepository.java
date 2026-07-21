@@ -80,7 +80,7 @@ public interface ReceiptRepository extends JpaRepository<ReceiptModal, String> {
     @Query(value = """
             SELECT *
             FROM receipt
-            WHERE status = B'1'
+            WHERE status = B'0'
             ORDER BY modified_date DESC, transaction_no DESC
             """, nativeQuery = true)
     List<ReceiptModal> findActiveReceipts();
