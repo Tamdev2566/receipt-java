@@ -63,11 +63,17 @@ public class ReceiptService {
             map.put("transactionNo", receipt.getTransactionNo());
             map.put("transactionDate", receipt.getTransactionDate());
             map.put("officeCode", receipt.getOfficeCode());
+            map.put("paymentMode", receipt.getPaymentMode());
             map.put("referenceNo", receipt.getReferenceNo());
             map.put("currencyCode", receipt.getCurrencyCode());
             map.put("amount", receipt.getAmount());
             map.put("status", receipt.getStatus());
             map.put("postedToCoda", receipt.getPostedToCoda());
+
+
+            map.put("createdUser", receipt.getCreatedUser());
+            map.put("createdDate", receipt.getCreatedDate());
+
 
             boolean isPaidActive = (receipt.getStatus() == null || !receipt.getStatus())
                     && (receipt.getPostedToCoda() == null || !receipt.getPostedToCoda());
