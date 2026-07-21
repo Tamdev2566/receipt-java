@@ -78,12 +78,11 @@ public interface ReceiptRepository extends JpaRepository<ReceiptModal, String> {
                       @Param("modifiedUser") String modifiedUser);
 
     @Query(value = """
-            SELECT *
-            FROM receipt
-            WHERE status = B'0'
-            ORDER BY modified_date DESC, transaction_no DESC
-            """, nativeQuery = true)
-    List<ReceiptModal> findActiveReceipts();
+        SELECT *
+        FROM receipt
+        ORDER BY modified_date DESC, transaction_no DESC
+        """, nativeQuery = true)
+    List<ReceiptModal> findAllReceipts();
 
     @Query(value = "SELECT MAX(transaction_no) FROM receipt WHERE transaction_no LIKE :datePrefix", nativeQuery = true)
     String findMaxTransactionNoForDate(@Param("datePrefix") String datePrefix);

@@ -54,8 +54,38 @@ public class ReceiptService {
         return savePayment(request, true);
     }
 
-    public List<ReceiptModal> getAllReceipts() {
-        return receiptRepository.findActiveReceipts();
+    public List<Map<String, Object>> getAllReceiptsWithActions() {
+        List<ReceiptModal> receipts = receiptRepository.findAllReceipts();
+        List<Map<String, Object>> responseList = new ArrayList<>();
+
+        for (ReceiptModal receipt : receipts) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("transactionNo", receipt.getTransactionNo());
+            map.put("transactionDate", receipt.getTransactionDate());
+            map.put("officeCode", receipt.getOfficeCode());
+            map.put("referenceNo", receipt.getReferenceNo());
+            map.put("currencyCode", receipt.getCurrencyCode());
+            map.put("amount", receipt.getAmount());
+            map.put("status", receipt.getStatus());
+            map.put("postedToCoda", receipt.getPostedToCoda());
+
+            boolean isPaidActive = (receipt.getStatus() == null || !receipt.getStatus())
+                    && (receipt.getPostedToCoda() == null || !receipt.getPostedToCoda());
+
+            if (isPaidActive) {
+                map.put("availableAction", "UNDO_PAYMENT");
+                map.put("actionMessage", "Can perform Undo Payment");
+            } else if (Boolean.TRUE.equals(receipt.getStatus())) {
+                map.put("availableAction", "DELETED");
+                map.put("actionMessage", "Payment already undone/cancelled");
+            } else {
+                map.put("availableAction", "POSTED_TO_CODA");
+                map.put("actionMessage", "Cannot undo, already posted to Coda");
+            }
+
+            responseList.add(map);
+        }
+        return responseList;
     }
 
     private Map<String, Object> savePayment(Map<String, Object> request, boolean overPayment) {

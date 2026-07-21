@@ -5,6 +5,7 @@ import com.receipt.receiptPhase.service.ReceiptService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -28,7 +29,7 @@ public class ReceiptController {
     }
 
     @GetMapping("/retrive")
-    public ResponseEntity<Iterable<ReceiptModal>> getAllReceipts() {
-        return ResponseEntity.ok(receiptService.getAllReceipts());
+    public ResponseEntity<List<Map<String, Object>>> getAllReceiptsWithActions() {
+        return ResponseEntity.ok(receiptService.getAllReceiptsWithActions());
     }
 }
