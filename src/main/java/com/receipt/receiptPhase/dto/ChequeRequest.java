@@ -4,7 +4,8 @@ public class ChequeRequest {
     private String uid;
     private String fullChequeNo;
     private String chequeNo;
-    private String boundOption; // "I", "O", or "IO"
+    private String boundOption;
+    private boolean autoRead;
 
     // Getters and Setters
     public String getUid() { return uid; }
@@ -18,4 +19,7 @@ public class ChequeRequest {
 
     public String getBoundOption() { return boundOption; }
     public void setBoundOption(String boundOption) { this.boundOption = boundOption; }
+
+    public boolean isAutoRead() { return autoRead; }
+    public void setAutoRead(boolean autoRead) { this.autoRead = autoRead; }
 }

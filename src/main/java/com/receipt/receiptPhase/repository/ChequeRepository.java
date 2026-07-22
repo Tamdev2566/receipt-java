@@ -61,7 +61,8 @@ public class ChequeRepository {
         String sql = "INSERT INTO cheque_reader (cheque_reader_id, office_code, bound, cheque_no, bank_name, full_cheque_no, scan_user_id, date_created, auto_read, is_valid) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        String chequeReaderId = "CR" + System.currentTimeMillis() % 1000000;
+        String chequeReaderId = "CR" + String.format("%04d", Math.abs(System.currentTimeMillis() % 10000));
+
         String officeCode = "OFF01";
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
