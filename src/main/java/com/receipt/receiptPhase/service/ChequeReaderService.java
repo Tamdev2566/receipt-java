@@ -1,6 +1,5 @@
 package com.receipt.receiptPhase.service;
 
-
 import com.receipt.receiptPhase.dto.ChequeRequest;
 import com.receipt.receiptPhase.model.ChequeReaderModel;
 import com.receipt.receiptPhase.repository.ChequeRepository;
@@ -30,9 +29,9 @@ public class ChequeReaderService {
 
         if (fullCheque.startsWith("T") && fullCheque.contains("-")) {
             String[] strArray = fullCheque.split("U");
-            if (strArray.length > 2) {
+            if (strArray.length > 2 && strArray[2].trim().length() >= 4) {
                 String strBankCode = strArray[2].trim().substring(0, 4);
-                String scannedChequeNo = strArray[1];
+                String scannedChequeNo = strArray[1].trim();
 
                 String bankName = repository.getBankNameByCode(strBankCode);
                 if (bankName != null && !bankName.isEmpty()) {
@@ -44,30 +43,27 @@ public class ChequeReaderService {
             }
         }
 
-        if (!chequeNoInput.contains(" ")) {
+
+        int spaceIndex = chequeNoInput.lastIndexOf(' ');
+        if (spaceIndex == -1) {
             throw new IllegalArgumentException("Invalid Cheque Number!!");
         }
 
-        String[] parts = chequeNoInput.split(" ");
-        String bankNamePart = parts[0].trim();
-        String numberPart = parts[1];
-
+        String bankNamePart = chequeNoInput.substring(0, spaceIndex).trim();
+        String numberPart = chequeNoInput.substring(spaceIndex + 1).trim();
 
         boolean bankExists = repository.checkBankExistsByName(bankNamePart);
         if (!bankExists) {
             throw new IllegalArgumentException("Invalid Bank Code / Bank Name!!");
         }
 
-
-        if (numberPart.length() != 6 || !numberPart.matches("^[0-9]+$") || !bankNamePart.matches("^[A-Za-z]+$")) {
+        if (numberPart.length() != 6 || !numberPart.matches("^[0-9]+$") || !bankNamePart.replace(" ", "").matches("^[A-Za-z]+$")) {
             throw new IllegalArgumentException("Invalid Cheque Number format!!");
         }
 
-
         if (repository.checkDuplicateCheque(chequeNoInput, fullCheque)) {
-            throw new RuntimeException("Duplicate Cheque No.");
+            throw new IllegalArgumentException("Duplicate Cheque No.");
         }
-
 
         String bound = "O";
         String userGroup = repository.getUserGroup(request.getUid());
@@ -80,17 +76,13 @@ public class ChequeReaderService {
             else if ("IO".equalsIgnoreCase(request.getBoundOption())) bound = "IO";
         }
 
-
-        String savedBankName = chequeNoInput.substring(0, chequeNoInput.indexOf(" "));
-
-
         ChequeReaderModel cheque = new ChequeReaderModel();
         cheque.setBound(bound);
         cheque.setChequeNo(chequeNoInput);
-        cheque.setBankName(savedBankName);
+        cheque.setBankName(bankNamePart);
         cheque.setScanUserId(request.getUid());
         cheque.setLastModified(LocalDateTime.now());
-        cheque.setCreateTime(LocalDateTime.now()); // Can be mapped from UI if passed
+        cheque.setCreateTime(LocalDateTime.now());
         cheque.setAutoRead(autoRead);
         cheque.setFullChequeNo(fullCheque);
 

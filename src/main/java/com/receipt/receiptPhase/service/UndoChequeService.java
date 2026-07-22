@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
 import org.springframework.dao.EmptyResultDataAccessException;
 
 @Service
@@ -15,7 +16,6 @@ public class UndoChequeService {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -41,8 +41,9 @@ public class UndoChequeService {
         String updateSql = "UPDATE cheque_reader SET date_deleted = ?, user_deleted = ? WHERE cheque_no = ? AND full_cheque_no = ?";
         jdbcTemplate.update(updateSql, formattedDate, userId, chequeNo, fullChequeNo);
 
-        String auditSql = "INSERT INTO receipt_auditlog (cancelled_cheque_no, reason, action_created_user, action_date, full_cheque_no) " +
-                "VALUES (?, ?, ?, ?, ?)";
-        jdbcTemplate.update(auditSql, chequeNo, remark, userId, formattedDate, truncatedFullChequeNo);
+        String logId = UUID.randomUUID().toString();
+        String auditSql = "INSERT INTO receipt_auditlog (log_id, cancelled_cheque_no, reason, action_created_user, action_date, full_cheque_no) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
+        jdbcTemplate.update(auditSql, logId, chequeNo, remark, userId, formattedDate, truncatedFullChequeNo);
     }
 }
