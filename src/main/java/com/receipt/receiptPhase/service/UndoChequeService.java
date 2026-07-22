@@ -31,6 +31,7 @@ public class UndoChequeService {
     }
 
     @Transactional
+
     public void undoCheque(String chequeNo, String fullChequeNo, String remark, String userId) {
         String formattedDate = LocalDateTime.now().format(FORMATTER);
 
@@ -41,7 +42,8 @@ public class UndoChequeService {
         String updateSql = "UPDATE cheque_reader SET date_deleted = ?, user_deleted = ? WHERE cheque_no = ? AND full_cheque_no = ?";
         jdbcTemplate.update(updateSql, formattedDate, userId, chequeNo, fullChequeNo);
 
-        String logId = UUID.randomUUID().toString();
+        String logId = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
+
         String auditSql = "INSERT INTO receipt_auditlog (log_id, cancelled_cheque_no, reason, action_created_user, action_date, full_cheque_no) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
         jdbcTemplate.update(auditSql, logId, chequeNo, remark, userId, formattedDate, truncatedFullChequeNo);
