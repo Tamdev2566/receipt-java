@@ -19,8 +19,10 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/getUsers")
-    public ResponseEntity<Map<String, Object>> getActiveUsers() {
-        List<UserDTO> userList = userService.getActiveUsers();
+    public ResponseEntity<Map<String, Object>> getActiveUsers(
+            @RequestParam(value = "search", required = false, defaultValue = "") String search) {
+
+        List<UserDTO> userList = userService.getActiveUsers(search);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", "SUCCESS");

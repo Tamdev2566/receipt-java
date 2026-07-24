@@ -1,7 +1,6 @@
 package com.receipt.receiptPhase.service.auth;
 
 import com.receipt.receiptPhase.dto.auth.UserDTO;
-import com.receipt.receiptPhase.model.auth.UserModal;
 import com.receipt.receiptPhase.repository.auth.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,18 +14,20 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    public List<UserDTO> getActiveUsers() {
-        List<UserModal> users = userRepository.findAll();
+    public List<UserDTO> getActiveUsers(String search) {
+        List<UserDTO> activeUsers = userRepository.findActiveUserDetails();
 
-        // Filter: Only users with isValid == "Y" (Case-insensitive check)
-        return users.stream()
-                .filter(user -> "Y".equalsIgnoreCase(user.getIsValid()))
-                .map(user -> new UserDTO(
-                        user.getUserId(),
-                        user.getEmail(),
-                        user.getName(),
-                        user.getIsValid()
-                ))
+        String searchTerm = (search == null || search.equals("*")) ? "" : search.trim().toLowerCase();
+
+        if (searchTerm.isEmpty()) {
+            return activeUsers;
+        }
+
+        return activeUsers.stream()
+                .filter(user ->
+                        (user.getUserId() != null && user.getUserId().toLowerCase().contains(searchTerm)) ||
+                                (user.getUserName() != null && user.getUserName().toLowerCase().contains(searchTerm)) ||
+                                (user.getFullName() != null && user.getFullName().toLowerCase().contains(searchTerm)))
                 .collect(Collectors.toList());
     }
 }
