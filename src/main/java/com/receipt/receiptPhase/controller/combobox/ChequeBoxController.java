@@ -1,4 +1,4 @@
-package com.receipt.receiptPhase.controller;
+package com.receipt.receiptPhase.controller.combobox;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

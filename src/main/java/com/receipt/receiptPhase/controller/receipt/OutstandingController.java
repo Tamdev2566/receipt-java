@@ -1,4 +1,4 @@
-package com.receipt.receiptPhase.controller;
+package com.receipt.receiptPhase.controller.receipt;
 
 import com.receipt.receiptPhase.model.OutstandingRequest;
 import com.receipt.receiptPhase.service.OutstandingService;

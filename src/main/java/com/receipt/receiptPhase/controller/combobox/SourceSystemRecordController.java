@@ -1,4 +1,4 @@
-package com.receipt.receiptPhase.controller;
+package com.receipt.receiptPhase.controller.combobox;
 
 import com.receipt.receiptPhase.model.SearchRequest;
 import com.receipt.receiptPhase.repository.VesselProjection;
