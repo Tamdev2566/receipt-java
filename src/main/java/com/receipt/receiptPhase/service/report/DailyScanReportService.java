@@ -9,7 +9,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -18,34 +17,32 @@ public class DailyScanReportService {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-
     public List<DailyScanReport> getDailyScanReport(LocalDate fromDate, LocalDate toDate, String bound) {
 
-        String startStr = fromDate.atStartOfDay().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        String endStr = toDate.atTime(23, 59, 59).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String fromStr = fromDate.toString();
+        String toStr = toDate.toString();
 
-        String boundCondition;
-        if ("I".equalsIgnoreCase(bound)) {
-            boundCondition = "AND bound IN ('I') ";
-        } else if ("O".equalsIgnoreCase(bound)) {
-            boundCondition = "AND bound IN ('O') ";
-        } else if ("IO".equalsIgnoreCase(bound)) {
-            boundCondition = "AND bound IN ('IO') ";
+        String boundCondition = "";
+        if ("I".equalsIgnoreCase(bound.trim())) {
+            boundCondition = "AND TRIM(bound) = 'I' ";
+        } else if ("O".equalsIgnoreCase(bound.trim())) {
+            boundCondition = "AND TRIM(bound) = 'O' ";
+        } else if ("IO".equalsIgnoreCase(bound.trim())) {
+            boundCondition = "AND TRIM(bound) = 'IO' ";
         } else {
-
-            boundCondition = "AND bound IN ('I', 'O', 'IO') ";
+            boundCondition = "AND TRIM(bound) IN ('I', 'O', 'IO') ";
         }
 
-
         String sql = "SELECT " +
-                "   CASE WHEN bound = 'I' THEN 'INBOUND' WHEN bound = 'O' THEN 'OUTBOUND' ELSE 'INBOUND AND OUTBOUND' END AS bound, " +
+                "   CASE WHEN TRIM(bound) = 'I' THEN 'INBOUND' WHEN TRIM(bound) = 'O' THEN 'OUTBOUND' ELSE 'INBOUND AND OUTBOUND' END AS bound, " +
                 "   full_cheque_no, cheque_no, bank_name, scan_user_id, " +
                 "   date_created AS create_time, " +
                 "   CASE WHEN auto_read = '1' OR auto_read = 'Y' OR auto_read = 'T' THEN 'TRUE' ELSE 'FALSE' END AS auto_read " +
                 "FROM cheque_reader " +
-                "WHERE date_created >= ? AND date_created <= ? " +
+                "WHERE SUBSTRING(TRIM(date_created), 1, 10) >= ? " +
+                "  AND SUBSTRING(TRIM(date_created), 1, 10) <= ? " +
                 boundCondition +
-                "  AND date_deleted IS NULL " +
+                "  AND (date_deleted IS NULL OR TRIM(date_deleted) = '') " +
                 "ORDER BY date_created DESC";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
@@ -58,16 +55,14 @@ public class DailyScanReportService {
             dto.setCreateTime(rs.getString("create_time") != null ? rs.getString("create_time") : "");
             dto.setAutoRead(rs.getString("auto_read"));
             return dto;
-        }, startStr, endStr);
+        }, fromStr, toStr);
     }
-
 
     public ByteArrayInputStream generateCsvReport(LocalDate fromDate, LocalDate toDate, String bound) {
         List<DailyScanReport> records = getDailyScanReport(fromDate, toDate, bound);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         PrintWriter writer = new PrintWriter(out);
-
 
         writer.println("BOUND,FULL CHEQUE NO,CHEQUE NO,BANK NAME,USER ID,CREATE TIME,AUTO READ");
 
