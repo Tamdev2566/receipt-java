@@ -1,6 +1,6 @@
 package com.receipt.receiptPhase.controller.receipt;
 
-import com.receipt.receiptPhase.model.ReceiptModal;
+
 import com.receipt.receiptPhase.service.ReceiptService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

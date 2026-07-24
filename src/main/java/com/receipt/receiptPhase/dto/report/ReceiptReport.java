@@ -1,4 +1,4 @@
-package com.receipt.receiptPhase.dto;
+package com.receipt.receiptPhase.dto.report;
 
 public class ReceiptReport{
     private String transactionDate;

@@ -1,9 +1,8 @@
-package com.receipt.receiptPhase.service;
+package com.receipt.receiptPhase.service.report;
 
-import com.receipt.receiptPhase.dto.ReceiptReport;
+import com.receipt.receiptPhase.dto.report.ReceiptReport;
 import com.receipt.receiptPhase.model.ReceiptModal;
 import com.receipt.receiptPhase.repository.ReceiptReportRepository;
-import com.receipt.receiptPhase.repository.ReceiptRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
