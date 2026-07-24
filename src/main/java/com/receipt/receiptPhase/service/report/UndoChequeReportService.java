@@ -1,5 +1,6 @@
 package com.receipt.receiptPhase.service.report;
 
+
 import com.receipt.receiptPhase.dto.report.UndoChequeReport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -10,7 +11,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -20,27 +20,41 @@ public class UndoChequeReportService {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-
     public List<UndoChequeReport> getUndoChequeReport(LocalDate fromDate, LocalDate toDate) {
-        LocalDateTime startDateTime = fromDate.atStartOfDay();
-        LocalDateTime endDateTime = toDate.atTime(LocalTime.MAX);
 
-        String sql = "SELECT DISTINCT CANCELLED_CHEQUENO, FULL_CHEQUE_NO, REASON, USER_ID, ACTION_DATE " +
-                "FROM RECEIPT_AUDITLOG " +
-                "WHERE CANCELLED_CHEQUENO IS NOT NULL " +
-                "  AND ACTION_DATE >= ? AND ACTION_DATE <= ? " +
-                "ORDER BY ACTION_DATE DESC";
+        String startStr = fromDate.atStartOfDay().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String endStr = toDate.atTime(23, 59, 59).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new UndoChequeReport(
-                rs.getString("CANCELLED_CHEQUENO"),
-                rs.getString("FULL_CHEQUE_NO"),
-                rs.getString("REASON"),
-                rs.getString("USER_ID"),
-                rs.getTimestamp("ACTION_DATE") != null ? rs.getTimestamp("ACTION_DATE").toLocalDateTime() : null
-        ), startDateTime, endDateTime);
+
+        String sql = "SELECT DISTINCT cancelled_cheque_no, full_cheque_no, reason, action_created_user, action_date " +
+                "FROM receipt_auditlog " +
+                "WHERE cancelled_cheque_no IS NOT NULL " +
+                "  AND action_date >= ? AND action_date <= ? " +
+                "ORDER BY action_date DESC";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            UndoChequeReport dto = new UndoChequeReport();
+            dto.setCancelledChequeNo(rs.getString("cancelled_cheque_no"));
+            dto.setFullChequeNo(rs.getString("full_cheque_no"));
+            dto.setReason(rs.getString("reason"));
+            dto.setUserId(rs.getString("action_created_user"));
+
+
+            String dateStr = rs.getString("action_date");
+            dto.setActionDateString(dateStr != null ? dateStr : "");
+            if (dateStr != null && !dateStr.trim().isEmpty()) {
+                try {
+
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                    dto.setActionDate(LocalDateTime.parse(dateStr.trim(), formatter));
+                } catch (Exception e) {
+                    dto.setActionDate(null);
+                }
+            }
+
+            return dto;
+        }, startStr, endStr);
     }
-
-
     public ByteArrayInputStream generateCsvReport(LocalDate fromDate, LocalDate toDate) {
         List<UndoChequeReport> records = getUndoChequeReport(fromDate, toDate);
 
@@ -65,6 +79,7 @@ public class UndoChequeReportService {
         writer.flush();
         return new ByteArrayInputStream(out.toByteArray());
     }
+
 
     private String cleanCsvField(String field) {
         if (field == null) return "";

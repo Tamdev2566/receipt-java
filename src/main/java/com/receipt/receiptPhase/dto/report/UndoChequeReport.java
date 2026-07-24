@@ -2,25 +2,17 @@ package com.receipt.receiptPhase.dto.report;
 
 import java.time.LocalDateTime;
 
-public class UndoChequeReport{
+public class UndoChequeReport {
 
     private String cancelledChequeNo;
     private String fullChequeNo;
     private String reason;
     private String userId;
     private LocalDateTime actionDate;
+    private String actionDateString;
 
     public UndoChequeReport() {}
 
-    public UndoChequeReport(String cancelledChequeNo, String fullChequeNo, String reason, String userId, LocalDateTime actionDate) {
-        this.cancelledChequeNo = cancelledChequeNo;
-        this.fullChequeNo = fullChequeNo;
-        this.reason = reason;
-        this.userId = userId;
-        this.actionDate = actionDate;
-    }
-
-    // Getters and Setters
     public String getCancelledChequeNo() { return cancelledChequeNo; }
     public void setCancelledChequeNo(String cancelledChequeNo) { this.cancelledChequeNo = cancelledChequeNo; }
 
@@ -35,4 +27,8 @@ public class UndoChequeReport{
 
     public LocalDateTime getActionDate() { return actionDate; }
     public void setActionDate(LocalDateTime actionDate) { this.actionDate = actionDate; }
+
+
+    public String getActionDateString() { return actionDateString; }
+    public void setActionDateString(String actionDateString) { this.actionDateString = actionDateString; }
 }

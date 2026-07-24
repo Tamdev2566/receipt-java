@@ -1,5 +1,4 @@
-package com.example.controller;
-
+package com.receipt.receiptPhase.controller.report;
 
 import com.receipt.receiptPhase.dto.report.UndoChequeReport;
 import com.receipt.receiptPhase.service.report.UndoChequeReportService;
