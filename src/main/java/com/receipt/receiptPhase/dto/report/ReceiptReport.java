@@ -1,10 +1,15 @@
 package com.receipt.receiptPhase.dto.report;
 
-public class ReceiptReport{
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class ReceiptReport {
     private String transactionDate;
     private String paymentMode;
+
+    @JsonProperty("currency")
     private String currencyCode;
-    private String reportFor; // Matches createdUser
+
+    private String reportFor;
 
     // Getters and Setters
     public String getTransactionDate() { return transactionDate; }

@@ -11,11 +11,12 @@ import java.util.List;
 @Repository
 public interface ReceiptReportRepository extends JpaRepository<ReceiptModal, String> {
 
-    @Query("SELECT r FROM ReceiptModal r WHERE " +
-            "(:transactionDate IS NULL OR TRIM(:transactionDate) = '' OR r.transactionDate LIKE CONCAT('%', :transactionDate, '%')) AND " +
-            "(:paymentMode IS NULL OR TRIM(:paymentMode) = '' OR UPPER(r.paymentMode) = UPPER(:paymentMode)) AND " +
-            "(:currencyCode IS NULL OR TRIM(:currencyCode) = '' OR UPPER(r.currencyCode) = UPPER(:currencyCode)) AND " +
-            "(:createdUser IS NULL OR TRIM(:createdUser) = '' OR UPPER(r.createdUser) = UPPER(:createdUser))")
+    @Query(value = "SELECT * FROM receipt r WHERE " +
+            "(:transactionDate IS NULL OR :transactionDate = '' OR r.transaction_date LIKE CONCAT(:transactionDate, '%')) AND " +
+            "(:paymentMode IS NULL OR :paymentMode = '' OR UPPER(TRIM(r.payment_mode)) = UPPER(TRIM(:paymentMode))) AND " +
+            "(:currencyCode IS NULL OR :currencyCode = '' OR UPPER(TRIM(r.currency_code)) = UPPER(TRIM(:currencyCode))) AND " +
+            "(:createdUser IS NULL OR :createdUser = '' OR UPPER(TRIM(r.created_user)) = UPPER(TRIM(:createdUser)))",
+            nativeQuery = true)
     List<ReceiptModal> filterReceipts(
             @Param("transactionDate") String transactionDate,
             @Param("paymentMode") String paymentMode,
