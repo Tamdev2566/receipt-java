@@ -1,48 +1,60 @@
 package com.receipt.receiptPhase.service.report;
 
 import com.receipt.receiptPhase.dto.report.ReceiptReport;
-import com.receipt.receiptPhase.model.ReceiptModal;
 import com.receipt.receiptPhase.repository.ReceiptReportRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.receipt.receiptPhase.repository.ReceiptReportRepository.ReceiptWithCustomerProjection;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @Service
 public class ReceiptReportService {
 
-    @Autowired
-    private ReceiptReportRepository receiptRepository;
+    private static final DateTimeFormatter INPUT_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter DB_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    public List<ReceiptModal> getFilteredReceipts(ReceiptReport filterDTO) {
+    private final ReceiptReportRepository receiptRepository;
 
-        String formattedDate = filterDTO.getTransactionDate();
-        if (formattedDate != null && !formattedDate.trim().isEmpty()) {
-            try {
-                DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                DateTimeFormatter dbFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                LocalDate date = LocalDate.parse(formattedDate.trim(), inputFormatter);
-                formattedDate = date.format(dbFormatter);
-            } catch (Exception e) {
+    public ReceiptReportService(ReceiptReportRepository receiptRepository) {
+        this.receiptRepository = receiptRepository;
+    }
 
-                formattedDate = filterDTO.getTransactionDate();
-            }
+    public List<ReceiptWithCustomerProjection> getFilteredReceipts(ReceiptReport filterDTO) {
+        if (filterDTO == null) {
+            return List.of();
         }
 
+        String formattedDate = parseAndFormatDate(filterDTO.getTransactionDate());
+        String formattedPaymentMode = cleanPaymentMode(filterDTO.getPaymentMode());
 
-        String formattedPaymentMode = filterDTO.getPaymentMode();
-        if (formattedPaymentMode != null) {
-            formattedPaymentMode = formattedPaymentMode.replace("/", "").trim();
-        }
-
-        return receiptRepository.filterReceipts(
+        return receiptRepository.filterReceiptsWithCustomer(
                 formattedDate,
                 formattedPaymentMode,
                 filterDTO.getCurrencyCode(),
                 filterDTO.getReportFor()
         );
+    }
+
+    private String parseAndFormatDate(String rawDate) {
+        if (!StringUtils.hasText(rawDate)) {
+            return null;
+        }
+        try {
+            LocalDate date = LocalDate.parse(rawDate.trim(), INPUT_FORMATTER);
+            return date.format(DB_FORMATTER);
+        } catch (DateTimeParseException e) {
+            return rawDate.trim();
+        }
+    }
+
+    private String cleanPaymentMode(String paymentMode) {
+        if (!StringUtils.hasText(paymentMode)) {
+            return null;
+        }
+        return paymentMode.replace("/", "").trim();
     }
 }
