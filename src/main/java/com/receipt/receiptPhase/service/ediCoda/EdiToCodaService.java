@@ -70,7 +70,7 @@ public class EdiToCodaService {
 
 
         String updateSql = "UPDATE receipt " +
-                "SET posted_to_coda = '1'::bit, coda_post_date = ? " +
+                "SET posted_to_coda = '1'::bit, modified_date = ? " +
                 "WHERE (status IS NULL OR status = '0'::bit) " +
                 "  AND (posted_to_coda IS NULL OR posted_to_coda = '0'::bit) " +
                 "  AND SUBSTRING(TRIM(transaction_date), 1, 10) >= ? " +
