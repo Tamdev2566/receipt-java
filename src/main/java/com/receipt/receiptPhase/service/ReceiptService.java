@@ -336,7 +336,6 @@ public class ReceiptService {
                 SET indicator = 1
                 WHERE bl_no = :blNo
                   AND reference_no = :referenceNo
-                  AND (:source IS NULL OR source = :source)
                 """, params);
     }
 

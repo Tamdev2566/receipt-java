@@ -26,9 +26,7 @@ public class UpdateTTRefController {
 
         return ResponseEntity.ok(result);
     }
-
-
-
+    
     @PostMapping("/update")
     public ResponseEntity<Map<String, String>> updateTT(@RequestBody Map<String, String> payload) {
         ttRefService.updateTTNo(
