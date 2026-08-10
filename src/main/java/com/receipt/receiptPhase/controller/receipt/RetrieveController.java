@@ -10,15 +10,15 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api")
 public class RetrieveController {
 
-    private final RetrieveService retrieveService;
+    private final RetrieveService retrieveAllService;
 
-    public RetrieveController(RetrieveService retrieveService) {
-        this.retrieveService = retrieveService;
+    public RetrieveController(RetrieveService retrieveAllService) {
+        this.retrieveAllService = retrieveAllService;
     }
 
     @PostMapping("/receiptRetrieve")
-    public ResponseEntity<RetrieveResponse> retrieveRecords(@RequestBody RetrieveRequest request) {
-        RetrieveResponse response = retrieveService.retrieveData(request);
+    public ResponseEntity<RetrieveResponse> retrieveAll(@RequestBody RetrieveRequest request) {
+        RetrieveResponse response = retrieveAllService.retrieveAllData(request);
         return ResponseEntity.ok(response);
     }
 }

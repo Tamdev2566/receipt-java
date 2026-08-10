@@ -69,12 +69,12 @@ public class EdiToCodaService {
         String currentTimestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
 
-        String updateSql = "UPDATE receipt " +
-                "SET posted_to_coda = '1'::bit, modified_date = ? " +
-                "WHERE (status IS NULL OR status = '0'::bit) " +
-                "  AND (posted_to_coda IS NULL OR posted_to_coda = '0'::bit) " +
-                "  AND SUBSTRING(TRIM(transaction_date), 1, 10) >= ? " +
-                "  AND SUBSTRING(TRIM(transaction_date), 1, 10) <= ?";
+            String updateSql = "UPDATE receipt " +
+                    "SET posted_to_coda = '1'::bit, modified_date = ? " +
+                    "WHERE (status IS NULL OR status = '0'::bit) " +
+                    "  AND (posted_to_coda IS NULL OR posted_to_coda = '0'::bit) " +
+                    "  AND SUBSTRING(TRIM(transaction_date), 1, 10) >= ? " +
+                    "  AND SUBSTRING(TRIM(transaction_date), 1, 10) <= ?";
 
         int updatedRows = jdbcTemplate.update(updateSql, currentTimestamp, fromStr, toStr);
 
