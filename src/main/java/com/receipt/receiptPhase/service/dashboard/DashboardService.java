@@ -80,9 +80,13 @@ public class DashboardService {
             String removedInvoiceSql = "SELECT COUNT(*) FROM source_system_records WHERE indicator = -1";
             Long removedInvoiceCount = jdbcTemplate.queryForObject(removedInvoiceSql, Long.class);
 
+            String postedToCodaSql = "SELECT COUNT(*) FROM Receipt WHERE posted_to_coda = '1'";
+            Long postedToCodaCount = jdbcTemplate.queryForObject(postedToCodaSql, Long.class);
+
             response.put("totalReceipts", totalReceipts != null ? totalReceipts : 0);
             response.put("undoCount", undoCount != null ? undoCount : 0);
             response.put("removedInvoiceCount", removedInvoiceCount != null ? removedInvoiceCount : 0);
+            response.put("postedToCodaCount", postedToCodaCount != null ? postedToCodaCount : 0);
             response.put("success", true);
 
         } catch (Exception e) {
