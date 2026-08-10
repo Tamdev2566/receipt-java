@@ -58,9 +58,9 @@ public class DashboardService {
     public List<Map<String, Object>> getRecentReceipts() {
         List<Map<String, Object>> allReceipts = receiptService.getAllReceiptsWithActions();
 
-        if (allReceipts != null && allReceipts.size() > 5) {
-            return allReceipts.subList(0, 5);
-        }
+//        if (allReceipts != null && allReceipts.size() > 5) {
+//            return allReceipts.subList(0, 5);
+//        }
         return allReceipts;
     }
 
