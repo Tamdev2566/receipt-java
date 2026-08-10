@@ -2,6 +2,7 @@ package com.receipt.receiptPhase.service;
 
 import com.receipt.receiptPhase.model.SourceSystemRecord;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,20 @@ public class RemoveInvoiceService {
         String sql = "SELECT * FROM source_system_records WHERE COALESCE(indicator, 0) = 0 " +
                 "AND customer_name = ? AND vessel_name = ? AND voyage_no = ?";
         return jdbcTemplate.queryForList(sql, customer, vessel, voyage);
+    }
+
+    public Map<String, Object> getDetailsByTransaction(String transactionNo) {
+
+        String sql = "SELECT s.customer_name, s.vessel_name, s.voyage_no " +
+                "FROM source_system_records s " +
+                "INNER JOIN invoice i ON s.reference_no = i.reference_no " +
+                "WHERE i.transaction_no = ?";
+
+        try {
+            return jdbcTemplate.queryForMap(sql, transactionNo);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
 

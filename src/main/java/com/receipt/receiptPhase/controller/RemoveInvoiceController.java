@@ -2,6 +2,7 @@ package com.receipt.receiptPhase.controller;
 
 import com.receipt.receiptPhase.service.RemoveInvoiceService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +25,22 @@ public class RemoveInvoiceController {
         return ResponseEntity.ok(invoiceService.getInvoices(customer, vessel, voyage));
     }
 
+    @GetMapping("/transaction/{transactionNo}")
+    public ResponseEntity<Map<String, Object>> getDetailsByTransaction(@PathVariable String transactionNo) {
+
+        Map<String, Object> details = invoiceService.getDetailsByTransaction(transactionNo);
+
+        if (details != null && !details.isEmpty()) {
+
+            return new ResponseEntity<>(details, HttpStatus.OK);
+        } else {
+
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", "No records found for transaction number: " + transactionNo);
+
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }
+    }
 
     @PostMapping("/remove")
     public ResponseEntity<Map<String, String>> removeInvoices(@RequestBody Map<String, Object> request) {
