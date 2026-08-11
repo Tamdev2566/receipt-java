@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class UpdateChequeService {
@@ -31,16 +32,13 @@ public class UpdateChequeService {
         }
     }
 
-
     @Transactional
     public void updateChequeNo(String oldNo, String newNo, String transNo, String remark, String userId) {
 
         String sql = "UPDATE RECEIPT SET REFERENCE_NO = ? WHERE REFERENCE_NO = ? AND TRANSACTION_NO = ? " +
                 "AND COALESCE(POSTED_TO_CODA, B'0') = B'0' AND COALESCE(Status, B'0') = B'0'";
         jdbcTemplate.update(sql, newNo, oldNo, transNo);
-
-        String maxIdSql = "SELECT COALESCE(MAX(CAST(NULLIF(log_id, '') AS INTEGER)), 0) + 1 FROM RECEIPT_AUDITLOG WHERE log_id <> ''";
-        Integer nextId = jdbcTemplate.queryForObject(maxIdSql, Integer.class);
+        String nextId = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
 
         String auditSql = "INSERT INTO RECEIPT_AUDITLOG (log_id, original_cheque_no, transaction_no, new_cheque_no, reason, payment_mode, action_date, action_created_user) " +
                 "VALUES (?, ?, ?, ?, ?, 'Cheque', ?, ?)";
