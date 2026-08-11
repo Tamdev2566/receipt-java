@@ -22,7 +22,8 @@ public class UndoChequeService {
     public Map<String, Object> getChequeDetails(String chequeNo, String fullChequeNo) {
         String sql = "SELECT bound, bank_name, scan_user_id FROM cheque_reader " +
                 "WHERE TO_TIMESTAMP(date_created, 'YYYY-MM-DD HH24:MI:SS') >= CURRENT_TIMESTAMP - INTERVAL '5 years' " +
-                "AND date_deleted IS NULL AND cheque_no = ? AND full_cheque_no = ?";
+                "AND (date_deleted IS NULL OR TRIM(date_deleted) = '') " +
+                "AND TRIM(cheque_no) = TRIM(?) AND TRIM(full_cheque_no) = TRIM(?)";
         try {
             return jdbcTemplate.queryForMap(sql, chequeNo, fullChequeNo);
         } catch (EmptyResultDataAccessException e) {
