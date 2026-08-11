@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -21,25 +22,33 @@ public class RemovedInvoiceReportService {
 
     public List<RemovedInvoiceReport> getRemovedInvoiceReport(LocalDate fromDate, LocalDate toDate) {
 
-        String startStr = fromDate.atStartOfDay().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        String endStr = toDate.atTime(23, 59, 59).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        // Column names mapped to PostgreSQL receipt_auditlog table
+        Timestamp startTimestamp = Timestamp.valueOf(fromDate.atStartOfDay());
+        Timestamp endTimestamp = Timestamp.valueOf(toDate.atTime(23, 59, 59));
+
         String sql = "SELECT DISTINCT removed_invoice_no, invoice_source, action_created_user, action_date, reason " +
                 "FROM receipt_auditlog " +
                 "WHERE removed_invoice_no IS NOT NULL " +
                 "  AND action_date >= ? AND action_date <= ? " +
                 "ORDER BY action_date DESC";
 
+
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             RemovedInvoiceReport dto = new RemovedInvoiceReport();
             dto.setRemovedInvoice(rs.getString("removed_invoice_no"));
             dto.setInvoiceSource(rs.getString("invoice_source"));
             dto.setUserId(rs.getString("action_created_user"));
-            dto.setActionDate(rs.getString("action_date") != null ? rs.getString("action_date") : "");
+
+            Timestamp actionDateTs = rs.getTimestamp("action_date");
+            if (actionDateTs != null) {
+                dto.setActionDate(actionDateTs.toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            } else {
+                dto.setActionDate("");
+            }
+
             dto.setReason(rs.getString("reason"));
             return dto;
-        }, startStr, endStr);
+        }, startTimestamp, endTimestamp);
     }
 
 
