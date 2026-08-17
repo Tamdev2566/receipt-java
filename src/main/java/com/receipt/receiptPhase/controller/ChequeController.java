@@ -40,6 +40,28 @@ public class ChequeController {
         }
     }
 
+
+    @PostMapping("/updateCheque")
+    public ResponseEntity<Map<String, Object>> updateCheque(@RequestBody ChequeReaderModel request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String responseMessage = chequeService.updateChequeDetails(request);
+            response.put("status", "SUCCESS");
+            response.put("message", responseMessage);
+            return ResponseEntity.ok(response);
+
+        } catch (IllegalArgumentException e) {
+            response.put("status", "FAILED");
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+
+        } catch (Exception e) {
+            response.put("status", "ERROR");
+            response.put("message", "Server Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
     @PostMapping("/list")
     public ResponseEntity<Map<String, Object>> getChequesList(@RequestBody(required = false) Map<String, String> requestData) {
         Map<String, Object> response = new HashMap<>();

@@ -99,4 +99,18 @@ public class ChequeReaderService {
             return repository.getAllCheques();
         }
     }
+
+    public String updateChequeDetails(ChequeReaderModel request) {
+        if (request.getId() == null || request.getId().trim().isEmpty()) {
+            throw new IllegalArgumentException("Cheque ID (id) is required for update.");
+        }
+
+        int result = repository.updateCheque(request);
+
+        if (result > 0) {
+            return "Cheque updated successfully!";
+        } else {
+            throw new IllegalArgumentException("Cheque ID not found or Update failed.");
+        }
+    }
 }

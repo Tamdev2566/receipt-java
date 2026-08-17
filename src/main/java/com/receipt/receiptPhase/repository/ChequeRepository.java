@@ -86,26 +86,35 @@ public class ChequeRepository {
         );
     }
 
+    public int updateCheque(ChequeReaderModel cheque) {
+        String sql = "UPDATE cheque_reader SET bank_name = ?, cheque_no = ?, full_cheque_no = ?, is_valid = ? " +
+                "WHERE cheque_reader_id = ?";
+
+        return receiptJdbcTemplate.update(sql,
+                cheque.getBankName(),
+                cheque.getChequeNo(),
+                cheque.getFullChequeNo(),
+                cheque.getIsValid(),
+                cheque.getId());
+    }
+
 
     public List<ChequeReaderModel> getAllCheques() {
-
-        String sql = "SELECT cheque_reader_id, cheque_no, bank_name, full_cheque_no, bound, scan_user_id, auto_read, date_created " +
+        String sql = "SELECT cheque_reader_id, cheque_no, bank_name, full_cheque_no, bound, scan_user_id, auto_read, date_created, is_valid " +
                 "FROM cheque_reader WHERE COALESCE(is_valid, '1') != '0' ORDER BY date_created DESC";
-
         return receiptJdbcTemplate.query(sql, new ChequeRowMapper());
     }
 
 
     public List<ChequeReaderModel> getChequesByUserId(String uid) {
-
-        String sql = "SELECT cheque_reader_id, cheque_no, bank_name, full_cheque_no, bound, scan_user_id, auto_read, date_created " +
+        String sql = "SELECT cheque_reader_id, cheque_no, bank_name, full_cheque_no, bound, scan_user_id, auto_read, date_created, is_valid " +
                 "FROM cheque_reader WHERE scan_user_id = ? AND COALESCE(is_valid, '1') != '0' ORDER BY date_created DESC";
-
         return receiptJdbcTemplate.query(sql, new Object[]{uid}, new ChequeRowMapper());
     }
-    private class ChequeRowMapper implements RowMapper<ChequeReaderModel> {
+
+    private class ChequeRowMapper implements org.springframework.jdbc.core.RowMapper<ChequeReaderModel> {
         @Override
-        public ChequeReaderModel mapRow(ResultSet rs, int rowNum) throws SQLException {
+        public ChequeReaderModel mapRow(java.sql.ResultSet rs, int rowNum) throws java.sql.SQLException {
             ChequeReaderModel cheque = new ChequeReaderModel();
 
             cheque.setId(rs.getString("cheque_reader_id"));
@@ -114,11 +123,11 @@ public class ChequeRepository {
             cheque.setFullChequeNo(rs.getString("full_cheque_no"));
             cheque.setBound(rs.getString("bound"));
             cheque.setScanUserId(rs.getString("scan_user_id"));
-
+            cheque.setIsValid(rs.getString("is_valid"));
             String autoReadStr = rs.getString("auto_read");
             cheque.setAutoRead("1".equals(autoReadStr));
 
-            Timestamp dateCreated = rs.getTimestamp("date_created");
+            java.sql.Timestamp dateCreated = rs.getTimestamp("date_created");
             if (dateCreated != null) {
                 cheque.setCreateTime(dateCreated.toLocalDateTime());
                 cheque.setLastModified(dateCreated.toLocalDateTime());

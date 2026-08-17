@@ -15,6 +15,7 @@ public class ChequeReaderModel {
     private LocalDateTime createTime;
     private boolean autoRead;
     private String fullChequeNo;
+    private String isValid;
 
 
     public String getId() { return id; }
@@ -43,4 +44,8 @@ public class ChequeReaderModel {
 
     public String getFullChequeNo() { return fullChequeNo; }
     public void setFullChequeNo(String fullChequeNo) { this.fullChequeNo = fullChequeNo; }
+
+    public String getIsValid() { return isValid; }
+    public void setIsValid(String isValid) { this.isValid = isValid; }
+
 }
