@@ -30,11 +30,9 @@ public class MasterBankRepository {
                 bank.getDateCreated(), bank.getUserCreated());
     }
 
-
-    public List<MasterBankModel> findAll(boolean isValidFlag) {
-        String validStatus = isValidFlag ? "1" : "0";
-        String sql = "SELECT * FROM master_banks WHERE COALESCE(is_valid, '1') = ?";
-        return jdbcTemplate.query(sql, new Object[]{validStatus}, new MasterBankRowMapper());
+    public List<MasterBankModel> getAllBanksData() {
+        String sql = "SELECT * FROM master_banks WHERE COALESCE(is_deleted, '0') != '1' ORDER BY date_created DESC";
+        return jdbcTemplate.query(sql, new MasterBankRowMapper());
     }
 
 

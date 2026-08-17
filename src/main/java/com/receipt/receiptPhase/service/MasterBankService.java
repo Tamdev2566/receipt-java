@@ -31,8 +31,8 @@ public class MasterBankService {
         return result > 0 ? "Bank created successfully with ID: " + generatedId : "Failed to create bank";
     }
 
-    public List<MasterBankModel> getAllBanks(boolean isValid) {
-        return repository.findAll(isValid);
+    public List<MasterBankModel> getAllBanks() {
+        return repository.getAllBanksData();
     }
 
     public MasterBankModel getBankById(String bankId) {

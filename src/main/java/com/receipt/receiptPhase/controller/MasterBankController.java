@@ -3,6 +3,7 @@ package com.receipt.receiptPhase.controller;
 import com.receipt.receiptPhase.model.MasterBankModel;
 import com.receipt.receiptPhase.service.MasterBankService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,15 +29,21 @@ public class MasterBankController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<Map<String, Object>> getAllBanks(@RequestParam(required = false, defaultValue = "true") boolean isValid) {
+    public ResponseEntity<Map<String, Object>> getAllBanks() {
         Map<String, Object> response = new HashMap<>();
-        List<MasterBankModel> banks = service.getAllBanks(isValid);
+        try {
+            List<MasterBankModel> banks = service.getAllBanks();
 
-        response.put("status", "SUCCESS");
-        response.put("totalRecords", banks.size());
-        response.put("isValidFilter", isValid);
-        response.put("data", banks);
-        return ResponseEntity.ok(response);
+            response.put("status", "SUCCESS");
+            response.put("totalRecords", banks.size());
+            response.put("data", banks);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("status", "ERROR");
+            response.put("message", "Failed to retrieve records: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 
 
