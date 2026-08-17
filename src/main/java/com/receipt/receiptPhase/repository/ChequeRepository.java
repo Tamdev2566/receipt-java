@@ -4,8 +4,12 @@ import com.receipt.receiptPhase.model.ChequeReaderModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -80,5 +84,47 @@ public class ChequeRepository {
                 cheque.isAutoRead() ? "1" : "0",
                 "1"
         );
+    }
+
+
+    public List<ChequeReaderModel> getAllCheques() {
+
+        String sql = "SELECT cheque_reader_id, cheque_no, bank_name, full_cheque_no, bound, scan_user_id, auto_read, date_created " +
+                "FROM cheque_reader WHERE COALESCE(is_valid, '1') != '0' ORDER BY date_created DESC";
+
+        return receiptJdbcTemplate.query(sql, new ChequeRowMapper());
+    }
+
+
+    public List<ChequeReaderModel> getChequesByUserId(String uid) {
+
+        String sql = "SELECT cheque_reader_id, cheque_no, bank_name, full_cheque_no, bound, scan_user_id, auto_read, date_created " +
+                "FROM cheque_reader WHERE scan_user_id = ? AND COALESCE(is_valid, '1') != '0' ORDER BY date_created DESC";
+
+        return receiptJdbcTemplate.query(sql, new Object[]{uid}, new ChequeRowMapper());
+    }
+    private class ChequeRowMapper implements RowMapper<ChequeReaderModel> {
+        @Override
+        public ChequeReaderModel mapRow(ResultSet rs, int rowNum) throws SQLException {
+            ChequeReaderModel cheque = new ChequeReaderModel();
+
+            cheque.setId(rs.getString("cheque_reader_id"));
+            cheque.setChequeNo(rs.getString("cheque_no"));
+            cheque.setBankName(rs.getString("bank_name"));
+            cheque.setFullChequeNo(rs.getString("full_cheque_no"));
+            cheque.setBound(rs.getString("bound"));
+            cheque.setScanUserId(rs.getString("scan_user_id"));
+
+            String autoReadStr = rs.getString("auto_read");
+            cheque.setAutoRead("1".equals(autoReadStr));
+
+            Timestamp dateCreated = rs.getTimestamp("date_created");
+            if (dateCreated != null) {
+                cheque.setCreateTime(dateCreated.toLocalDateTime());
+                cheque.setLastModified(dateCreated.toLocalDateTime());
+            }
+
+            return cheque;
+        }
     }
 }

@@ -3,7 +3,10 @@ package com.receipt.receiptPhase.model;
 import java.time.LocalDateTime;
 
 public class ChequeReaderModel {
-    private Long id;
+
+
+    private String id;
+
     private String bound;
     private String chequeNo;
     private String bankName;
@@ -13,9 +16,9 @@ public class ChequeReaderModel {
     private boolean autoRead;
     private String fullChequeNo;
 
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
     public String getBound() { return bound; }
     public void setBound(String bound) { this.bound = bound; }

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class ChequeReaderService {
@@ -89,5 +90,13 @@ public class ChequeReaderService {
         repository.saveCheque(cheque);
 
         return "Cheque No : " + chequeNoInput + " are saved Successfully!";
+    }
+
+    public List<ChequeReaderModel> getChequeList(String uid) {
+        if (uid != null && !uid.trim().isEmpty()) {
+            return repository.getChequesByUserId(uid.trim());
+        } else {
+            return repository.getAllCheques();
+        }
     }
 }
