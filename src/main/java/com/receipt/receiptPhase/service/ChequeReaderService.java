@@ -100,9 +100,21 @@ public class ChequeReaderService {
         }
     }
 
+
     public String updateChequeDetails(ChequeReaderModel request) {
         if (request.getId() == null || request.getId().trim().isEmpty()) {
             throw new IllegalArgumentException("Cheque ID (id) is required for update.");
+        }
+
+        boolean hasUpdates =
+                (request.getBankName() != null && !request.getBankName().trim().isEmpty()) ||
+                        (request.getChequeNo() != null && !request.getChequeNo().trim().isEmpty()) ||
+                        (request.getFullChequeNo() != null && !request.getFullChequeNo().trim().isEmpty()) ||
+                        (request.getBound() != null && !request.getBound().trim().isEmpty()) ||
+                        (request.getIsValid() != null && !request.getIsValid().trim().isEmpty());
+
+        if (!hasUpdates) {
+            throw new IllegalArgumentException("No fields provided to update. Please provide at least one field (bankName, chequeNo, fullChequeNo, bound, isValid).");
         }
 
         int result = repository.updateCheque(request);

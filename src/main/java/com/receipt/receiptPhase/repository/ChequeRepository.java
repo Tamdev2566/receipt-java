@@ -87,15 +87,40 @@ public class ChequeRepository {
     }
 
     public int updateCheque(ChequeReaderModel cheque) {
-        String sql = "UPDATE cheque_reader SET bank_name = ?, cheque_no = ?, full_cheque_no = ?, is_valid = ? " +
-                "WHERE cheque_reader_id = ?";
+        StringBuilder sql = new StringBuilder("UPDATE cheque_reader SET ");
+        List<Object> params = new java.util.ArrayList<>();
+        if (cheque.getBankName() != null && !cheque.getBankName().trim().isEmpty()) {
+            sql.append("bank_name = ?, ");
+            params.add(cheque.getBankName().trim());
+        }
+        if (cheque.getChequeNo() != null && !cheque.getChequeNo().trim().isEmpty()) {
+            sql.append("cheque_no = ?, ");
+            params.add(cheque.getChequeNo().trim());
+        }
+        if (cheque.getFullChequeNo() != null && !cheque.getFullChequeNo().trim().isEmpty()) {
+            sql.append("full_cheque_no = ?, ");
+            params.add(cheque.getFullChequeNo().trim());
+        }
+        if (cheque.getBound() != null && !cheque.getBound().trim().isEmpty()) {
+            sql.append("bound = ?, ");
+            params.add(cheque.getBound().trim());
+        }
+        if (cheque.getIsValid() != null && !cheque.getIsValid().trim().isEmpty()) {
+            sql.append("is_valid = ?, ");
+            params.add(cheque.getIsValid().trim());
+        }
 
-        return receiptJdbcTemplate.update(sql,
-                cheque.getBankName(),
-                cheque.getChequeNo(),
-                cheque.getFullChequeNo(),
-                cheque.getIsValid(),
-                cheque.getId());
+
+        if (params.isEmpty()) {
+            return 0;
+        }
+
+
+        sql.setLength(sql.length() - 2);
+        sql.append(" WHERE cheque_reader_id = ?");
+        params.add(cheque.getId().trim());
+
+        return receiptJdbcTemplate.update(sql.toString(), params.toArray());
     }
 
 
