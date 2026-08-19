@@ -20,19 +20,19 @@ public class MasterBankController {
 
 
     @PostMapping("/add")
-    public ResponseEntity<Map<String, Object>> addBank(@RequestBody MasterBankModel bank) {
+    public ResponseEntity<Map<String, Object>> addBank(@RequestBody MasterBankModel bank, @RequestParam String locationId) {
         Map<String, Object> response = new HashMap<>();
-        String message = service.createBank(bank);
+        String message = service.createBank(bank, locationId);
         response.put("status", message.contains("successfully") ? "SUCCESS" : "FAILED");
         response.put("message", message);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/list")
-    public ResponseEntity<Map<String, Object>> getAllBanks() {
+    public ResponseEntity<Map<String, Object>> getAllBanks(@RequestParam String locationId) {
         Map<String, Object> response = new HashMap<>();
         try {
-            List<MasterBankModel> banks = service.getAllBanks();
+            List<MasterBankModel> banks = service.getAllBanks(locationId);
 
             response.put("status", "SUCCESS");
             response.put("totalRecords", banks.size());
@@ -48,9 +48,9 @@ public class MasterBankController {
 
 
     @GetMapping("/{bankId}")
-    public ResponseEntity<Map<String, Object>> getBankById(@PathVariable String bankId) {
+    public ResponseEntity<Map<String, Object>> getBankById(@PathVariable String bankId, @RequestParam String locationId) {
         Map<String, Object> response = new HashMap<>();
-        MasterBankModel bank = service.getBankById(bankId);
+        MasterBankModel bank = service.getBankById(bankId, locationId);
         if (bank != null) {
             response.put("status", "SUCCESS");
             response.put("data", bank);
@@ -63,9 +63,9 @@ public class MasterBankController {
 
 
     @PutMapping("/update/{bankId}")
-    public ResponseEntity<Map<String, Object>> updateBank(@PathVariable String bankId, @RequestBody MasterBankModel bank) {
+    public ResponseEntity<Map<String, Object>> updateBank(@PathVariable String bankId, @RequestBody MasterBankModel bank, @RequestParam String locationId) {
         Map<String, Object> response = new HashMap<>();
-        String message = service.updateBank(bankId, bank);
+        String message = service.updateBank(bankId, bank, locationId);
         response.put("status", message.contains("successfully") ? "SUCCESS" : "FAILED");
         response.put("message", message);
         return ResponseEntity.ok(response);
@@ -73,9 +73,9 @@ public class MasterBankController {
 
 
     @DeleteMapping("/delete/{bankId}")
-    public ResponseEntity<Map<String, Object>> deleteBank(@PathVariable String bankId, @RequestParam(required = false, defaultValue = "SYSTEM") String userId) {
+    public ResponseEntity<Map<String, Object>> deleteBank(@PathVariable String bankId, @RequestParam(required = false, defaultValue = "SYSTEM") String userId, @RequestParam String locationId) {
         Map<String, Object> response = new HashMap<>();
-        String message = service.deleteBank(bankId, userId);
+        String message = service.deleteBank(bankId, userId, locationId);
         response.put("status", message.contains("successfully") ? "SUCCESS" : "FAILED");
         response.put("message", message);
         return ResponseEntity.ok(response);

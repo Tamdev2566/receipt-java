@@ -23,19 +23,22 @@ public class DashboardService {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    public Map<String, Object> getDashboardKPIs() {
+    public Map<String, Object> getDashboardKPIs(String locationId) {
         Map<String, Object> kpiData = new HashMap<>();
 
         try {
 
-            int agingChequesCount = agingReportService.getAgingReport(30).size();
+            requireLocation(locationId);
+            int agingChequesCount = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM cheque_reader WHERE office_code = ? AND date_created::date <= CURRENT_DATE - INTERVAL '30 days' " +
+                            "AND (date_deleted IS NULL OR TRIM(date_deleted) = '')", Integer.class, locationId);
 
-            String dailyScansSql = "SELECT COUNT(*) FROM cheque_reader WHERE date_created::date = CURRENT_DATE AND (date_deleted IS NULL OR TRIM(date_deleted) = '')";
-            Long dailyScansCount = jdbcTemplate.queryForObject(dailyScansSql, Long.class);
+            String dailyScansSql = "SELECT COUNT(*) FROM cheque_reader WHERE office_code = ? AND date_created::date = CURRENT_DATE AND (date_deleted IS NULL OR TRIM(date_deleted) = '')";
+            Long dailyScansCount = jdbcTemplate.queryForObject(dailyScansSql, Long.class, locationId);
 
 
-            String outstandingSql = "SELECT SUM(value_doc) FROM source_system_records WHERE indicator IS NULL OR indicator = 0";
-            BigDecimal totalOutstanding = jdbcTemplate.queryForObject(outstandingSql, BigDecimal.class);
+            String outstandingSql = "SELECT SUM(value_doc) FROM source_system_records WHERE office_code = ? AND (indicator IS NULL OR indicator = 0)";
+            BigDecimal totalOutstanding = jdbcTemplate.queryForObject(outstandingSql, BigDecimal.class, locationId);
 
 
             kpiData.put("dailyScans", dailyScansCount != null ? dailyScansCount : 0);
@@ -55,8 +58,8 @@ public class DashboardService {
         return kpiData;
     }
 
-    public List<Map<String, Object>> getRecentReceipts() {
-        List<Map<String, Object>> allReceipts = receiptService.getAllReceiptsWithActions();
+    public List<Map<String, Object>> getRecentReceipts(String locationId) {
+        List<Map<String, Object>> allReceipts = receiptService.getAllReceiptsWithActions(locationId);
 
 //        if (allReceipts != null && allReceipts.size() > 5) {
 //            return allReceipts.subList(0, 5);
@@ -64,24 +67,25 @@ public class DashboardService {
         return allReceipts;
     }
 
-    public Map<String, Object> getReceiptSummary() {
+    public Map<String, Object> getReceiptSummary(String locationId) {
         Map<String, Object> response = new HashMap<>();
 
         try {
 
-            String totalReceiptsSql = "SELECT COUNT(*) FROM Receipt";
-            Long totalReceipts = jdbcTemplate.queryForObject(totalReceiptsSql, Long.class);
+            requireLocation(locationId);
+            String totalReceiptsSql = "SELECT COUNT(*) FROM Receipt WHERE office_code = ?";
+            Long totalReceipts = jdbcTemplate.queryForObject(totalReceiptsSql, Long.class, locationId);
 
 
-            String undoCountSql = "SELECT COUNT(*) FROM Receipt WHERE status = '1'";
-            Long undoCount = jdbcTemplate.queryForObject(undoCountSql, Long.class);
+            String undoCountSql = "SELECT COUNT(*) FROM Receipt WHERE office_code = ? AND status = '1'";
+            Long undoCount = jdbcTemplate.queryForObject(undoCountSql, Long.class, locationId);
 
 
-            String removedInvoiceSql = "SELECT COUNT(*) FROM source_system_records WHERE indicator = -1";
-            Long removedInvoiceCount = jdbcTemplate.queryForObject(removedInvoiceSql, Long.class);
+            String removedInvoiceSql = "SELECT COUNT(*) FROM source_system_records WHERE office_code = ? AND indicator = -1";
+            Long removedInvoiceCount = jdbcTemplate.queryForObject(removedInvoiceSql, Long.class, locationId);
 
-            String postedToCodaSql = "SELECT COUNT(*) FROM Receipt WHERE posted_to_coda = '1'";
-            Long postedToCodaCount = jdbcTemplate.queryForObject(postedToCodaSql, Long.class);
+            String postedToCodaSql = "SELECT COUNT(*) FROM Receipt WHERE office_code = ? AND posted_to_coda = '1'";
+            Long postedToCodaCount = jdbcTemplate.queryForObject(postedToCodaSql, Long.class, locationId);
 
             response.put("totalReceipts", totalReceipts != null ? totalReceipts : 0);
             response.put("undoCount", undoCount != null ? undoCount : 0);
@@ -95,5 +99,9 @@ public class DashboardService {
         }
 
         return response;
+    }
+
+    private void requireLocation(String locationId) {
+        if (locationId == null || locationId.isBlank()) throw new IllegalArgumentException("locationId is required.");
     }
 }

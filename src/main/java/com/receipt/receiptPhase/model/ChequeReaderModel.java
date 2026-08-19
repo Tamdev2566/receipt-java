@@ -4,48 +4,95 @@ import java.time.LocalDateTime;
 
 public class ChequeReaderModel {
 
+  private String id;
 
-    private String id;
+  private String bound;
+  private String chequeNo;
+  private String bankName;
+  private String scanUserId;
+  private LocalDateTime lastModified;
+  private LocalDateTime createTime;
+  private boolean autoRead;
+  private String fullChequeNo;
+  private String isValid;
 
-    private String bound;
-    private String chequeNo;
-    private String bankName;
-    private String scanUserId;
-    private LocalDateTime lastModified;
-    private LocalDateTime createTime;
-    private boolean autoRead;
-    private String fullChequeNo;
-    private String isValid;
+  public String getId() {
+    return id;
+  }
 
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+  public String getBound() {
+    return bound;
+  }
 
-    public String getBound() { return bound; }
-    public void setBound(String bound) { this.bound = bound; }
+  public void setBound(String bound) {
+    this.bound = bound;
+  }
 
-    public String getChequeNo() { return chequeNo; }
-    public void setChequeNo(String chequeNo) { this.chequeNo = chequeNo; }
+  public String getChequeNo() {
+    return chequeNo;
+  }
 
-    public String getBankName() { return bankName; }
-    public void setBankName(String bankName) { this.bankName = bankName; }
+  public void setChequeNo(String chequeNo) {
+    this.chequeNo = chequeNo;
+  }
 
-    public String getScanUserId() { return scanUserId; }
-    public void setScanUserId(String scanUserId) { this.scanUserId = scanUserId; }
+  public String getBankName() {
+    return bankName;
+  }
 
-    public LocalDateTime getLastModified() { return lastModified; }
-    public void setLastModified(LocalDateTime lastModified) { this.lastModified = lastModified; }
+  public void setBankName(String bankName) {
+    this.bankName = bankName;
+  }
 
-    public LocalDateTime getCreateTime() { return createTime; }
-    public void setCreateTime(LocalDateTime createTime) { this.createTime = createTime; }
+  public String getScanUserId() {
+    return scanUserId;
+  }
 
-    public boolean isAutoRead() { return autoRead; }
-    public void setAutoRead(boolean autoRead) { this.autoRead = autoRead; }
+  public void setScanUserId(String scanUserId) {
+    this.scanUserId = scanUserId;
+  }
 
-    public String getFullChequeNo() { return fullChequeNo; }
-    public void setFullChequeNo(String fullChequeNo) { this.fullChequeNo = fullChequeNo; }
+  public LocalDateTime getLastModified() {
+    return lastModified;
+  }
 
-    public String getIsValid() { return isValid; }
-    public void setIsValid(String isValid) { this.isValid = isValid; }
+  public void setLastModified(LocalDateTime lastModified) {
+    this.lastModified = lastModified;
+  }
 
+  public LocalDateTime getCreateTime() {
+    return createTime;
+  }
+
+  public void setCreateTime(LocalDateTime createTime) {
+    this.createTime = createTime;
+  }
+
+  public boolean isAutoRead() {
+    return autoRead;
+  }
+
+  public void setAutoRead(boolean autoRead) {
+    this.autoRead = autoRead;
+  }
+
+  public String getFullChequeNo() {
+    return fullChequeNo;
+  }
+
+  public void setFullChequeNo(String fullChequeNo) {
+    this.fullChequeNo = fullChequeNo;
+  }
+
+  public String getIsValid() {
+    return isValid;
+  }
+
+  public void setIsValid(String isValid) {
+    this.isValid = isValid;
+  }
 }

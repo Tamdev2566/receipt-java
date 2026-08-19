@@ -67,7 +67,8 @@ public class ChequeController {
         Map<String, Object> response = new HashMap<>();
         try {
             String uid = (requestData != null) ? requestData.get("uid") : null;
-            List<ChequeReaderModel> list = chequeService.getChequeList(uid);
+            String locationId = (requestData != null) ? requestData.get("locationId") : null;
+            List<ChequeReaderModel> list = chequeService.getChequeList(uid, locationId);
 
             response.put("status", "SUCCESS");
             response.put("totalRecords", list.size());

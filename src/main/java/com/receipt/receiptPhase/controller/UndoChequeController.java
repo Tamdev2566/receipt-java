@@ -16,8 +16,8 @@ public class UndoChequeController {
 
 
     @GetMapping("/search")
-    public ResponseEntity<?> searchCheque(@RequestParam String chequeNo, @RequestParam String fullChequeNo) {
-        Map<String, Object> details = undoChequeService.getChequeDetails(chequeNo, fullChequeNo);
+    public ResponseEntity<?> searchCheque(@RequestParam String chequeNo, @RequestParam String fullChequeNo, @RequestParam String locationId) {
+        Map<String, Object> details = undoChequeService.getChequeDetails(chequeNo, fullChequeNo, locationId);
         if (details.isEmpty()) {
             return ResponseEntity.status(404).body("No records found.");
         }
@@ -31,8 +31,9 @@ public class UndoChequeController {
         String fullChequeNo = (String) request.get("fullChequeNo");
         String remark = (String) request.get("remark");
         String userId = (String) request.get("userId");
+        String locationId = (String) request.get("locationId");
 
-        undoChequeService.undoCheque(chequeNo, fullChequeNo, remark, userId);
+        undoChequeService.undoCheque(chequeNo, fullChequeNo, remark, userId, locationId);
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "This Cheque No was successfully Cancelled.");

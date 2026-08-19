@@ -15,8 +15,8 @@
         private UpdateChequeService chequeService;
 
         @GetMapping("/search")
-        public ResponseEntity<?> getReceiptByCheque(@RequestParam String chequeNo) {
-            Map<String, Object> result = chequeService.findByChequeNo(chequeNo);
+        public ResponseEntity<?> getReceiptByCheque(@RequestParam String chequeNo, @RequestParam String locationId) {
+            Map<String, Object> result = chequeService.findByChequeNo(chequeNo, locationId);
 
             if (result == null || result.isEmpty()) {
                 return ResponseEntity
@@ -34,7 +34,8 @@
                         payload.get("newChequeNo"),
                         payload.get("transactionNo"),
                         payload.get("remark"),
-                        payload.get("userId")
+                        payload.get("userId"),
+                        payload.get("locationId")
                 );
                 return ResponseEntity.ok(Map.of("message", "Cheque Number Updated Successfully"));
             } catch (Exception e) {

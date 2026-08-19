@@ -17,8 +17,8 @@ public class UpdateTTRefController {
 
 
     @GetMapping("/search")
-    public ResponseEntity<?> searchTT(@RequestParam String ttNo) {
-        Map<String, Object> result = ttRefService.findByTTNo(ttNo);
+    public ResponseEntity<?> searchTT(@RequestParam String ttNo, @RequestParam String locationId) {
+        Map<String, Object> result = ttRefService.findByTTNo(ttNo, locationId);
 
         if (result == null) {
             return ResponseEntity.ok(Map.of("message", "No record found"));
@@ -34,7 +34,8 @@ public class UpdateTTRefController {
                 payload.get("newTTNo"),
                 payload.get("transactionNo"),
                 payload.get("remark"),
-                payload.get("userId")
+                payload.get("userId"),
+                payload.get("locationId")
         );
 
         Map<String, String> response = new HashMap<>();

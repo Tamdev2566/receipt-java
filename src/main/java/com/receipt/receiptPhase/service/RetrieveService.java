@@ -26,7 +26,13 @@ public class RetrieveService {
         String vessel = request.getVesselName() != null ? request.getVesselName().trim() : "";
         String voyage = request.getVoyageNo() != null ? request.getVoyageNo().trim() : "";
         String customer = request.getCustomerName() != null ? request.getCustomerName().trim() : "";
+        String locationId = request.getLocationCode();
 
+        if (locationId.isEmpty()) {
+            response.setSuccess(false);
+            response.setMessage("locationId is required.");
+            return response;
+        }
 
         if (invNo.isEmpty() && blNo.isEmpty() && vessel.isEmpty() && voyage.isEmpty() && customer.isEmpty()) {
             response.setSuccess(false);
@@ -43,24 +49,25 @@ public class RetrieveService {
         StringBuilder queryMain = new StringBuilder(
                 "SELECT DISTINCT bl_no, vessel_code, vessel_name, voyage_no, customer_name, type, reference_date, reference_no, " +
                         "value_doc AS SGD_Amount, value_dual AS USD_Amount, original_sgd, original_usd, exchange_rate " +
-                        "FROM source_system_records WHERE (indicator IS NULL OR indicator = 0) "
+                        "FROM source_system_records WHERE office_code = :locationId AND (indicator IS NULL OR indicator = 0) "
         );
 
         StringBuilder queryPartial = new StringBuilder(
                 "SELECT DISTINCT p.bl_no, p.reference_no " +
                         "FROM partial p INNER JOIN receipt r ON p.transaction_no = r.transaction_no " +
-                        "WHERE (r.status IS NULL OR r.status = '0') "
+                        "WHERE r.office_code = :locationId AND (r.status IS NULL OR r.status = '0') "
         );
 
         StringBuilder queryPartialExclusion = new StringBuilder(
                 " AND p.reference_no NOT IN (" +
                         "SELECT i.reference_no FROM invoice i INNER JOIN receipt r ON i.transaction_no = r.transaction_no " +
-                        "WHERE (r.status IS NULL OR r.status = '0') AND i.partial = '0' "
+                        "WHERE r.office_code = :locationId AND (r.status IS NULL OR r.status = '0') AND i.partial = '0' "
         );
 
         StringBuilder queryCheck = new StringBuilder(
-                "SELECT indicator FROM source_system_records WHERE 1=1 "
+                "SELECT indicator FROM source_system_records WHERE office_code = :locationId "
         );
+        params.addValue("locationId", locationId);
 
         // 3. Dynamic Filtering Conditions
         List<String> conditionsMain = new ArrayList<>();
@@ -114,7 +121,7 @@ public class RetrieveService {
 
         // Special condition logic for Invoice-only search
         if (!invNo.isEmpty() && blNo.isEmpty() && vessel.isEmpty() && customer.isEmpty()) {
-            String checkBLSql = "SELECT bl_no FROM source_system_records WHERE reference_no = :invNo ORDER BY reference_no";
+            String checkBLSql = "SELECT bl_no FROM source_system_records WHERE office_code = :locationId AND reference_no = :invNo ORDER BY reference_no";
             List<String> blList = jdbcTemplate.queryForList(checkBLSql, params, String.class);
 
             if (!blList.isEmpty() && blList.get(0) != null && !blList.get(0).trim().isEmpty()) {
@@ -123,7 +130,8 @@ public class RetrieveService {
                                 "doc2.type, doc2.reference_date, doc2.reference_no, doc2.value_doc AS SGD_Amount, doc2.value_dual AS USD_Amount, " +
                                 "doc2.original_sgd, doc2.original_usd, doc2.exchange_rate " +
                                 "FROM source_system_records doc1 INNER JOIN source_system_records doc2 ON doc1.bl_no = doc2.bl_no " +
-                                "WHERE (doc1.indicator IS NULL OR doc1.indicator = 0) " +
+                                "WHERE doc1.office_code = :locationId AND doc2.office_code = :locationId " +
+                                "AND (doc1.indicator IS NULL OR doc1.indicator = 0) " +
                                 "AND (doc2.indicator IS NULL OR doc2.indicator = 0) " +
                                 "AND doc1.bl_no <> '' AND doc1.reference_no = :invNo ORDER BY doc2.reference_date"
                 );
@@ -136,12 +144,15 @@ public class RetrieveService {
 
         List<Map<String, Object>> outstandings = new ArrayList<>();
         for (Map<String, Object> row : partialRows) {
-            String partialSql = "SELECT transaction_no, bl_no, vessel_code, vessel_name, voyage_no, customer_name, type, " +
-                    "reference_date, reference_no, value_doc AS SGD_Amount, value_dual AS USD_Amount, original_sgd, original_usd " +
-                    "FROM partial WHERE bl_no = :pBlNo AND reference_no = :pRefNo ORDER BY transaction_date DESC LIMIT 1";
+            String partialSql = "SELECT p.transaction_no, p.bl_no, p.vessel_code, p.vessel_name, p.voyage_no, p.customer_name, p.type, " +
+                    "p.reference_date, p.reference_no, p.value_doc AS SGD_Amount, p.value_dual AS USD_Amount, p.original_sgd, p.original_usd " +
+                    "FROM partial p INNER JOIN receipt r ON p.transaction_no = r.transaction_no " +
+                    "WHERE r.office_code = :locationId AND p.bl_no = :pBlNo AND p.reference_no = :pRefNo " +
+                    "ORDER BY p.transaction_date DESC LIMIT 1";
             MapSqlParameterSource pParams = new MapSqlParameterSource();
             pParams.addValue("pBlNo", row.get("bl_no"));
             pParams.addValue("pRefNo", row.get("reference_no"));
+            pParams.addValue("locationId", locationId);
 
             List<Map<String, Object>> res = jdbcTemplate.queryForList(partialSql, pParams);
             if (!res.isEmpty()) {

@@ -16,13 +16,13 @@ public class UpdateTTRefService {
     private JdbcTemplate jdbcTemplate;
 
 
-    public Map<String, Object> findByTTNo(String ttNo) {
+    public Map<String, Object> findByTTNo(String ttNo, String locationId) {
         String sql = "SELECT r.transaction_No, i.customer_name, r.reference_No, r.currency_code, r.amount, r.paid_invoice_total " +
                 "FROM Receipt r " +
                 "LEFT JOIN Invoice i ON i.transaction_No = r.transaction_No " +
-                "WHERE r.reference_No = ? AND COALESCE(r.posted_to_coda, B'0') = B'0' AND COALESCE(r.status, B'0') = B'0'";
+                "WHERE r.reference_No = ? AND r.office_code = ? AND COALESCE(r.posted_to_coda, B'0') = B'0' AND COALESCE(r.status, B'0') = B'0'";
         try {
-            return jdbcTemplate.queryForMap(sql, ttNo);
+            return jdbcTemplate.queryForMap(sql, ttNo, requiredLocation(locationId));
         } catch (org.springframework.dao.EmptyResultDataAccessException e) {
             return null;
         } catch (Exception e) {
@@ -33,16 +33,16 @@ public class UpdateTTRefService {
 
 
     @Transactional
-    public void updateTTNo(String oldNo, String newNo, String transNo, String remark, String userId) {
+    public void updateTTNo(String oldNo, String newNo, String transNo, String remark, String userId, String locationId) {
 
         String sql = "UPDATE RECEIPT SET REFERENCE_NO = ? WHERE REFERENCE_NO = ? AND TRANSACTION_NO = ? " +
-                "AND COALESCE(POSTED_TO_CODA, B'0') = B'0' AND COALESCE(Status, B'0') = B'0'";
-        jdbcTemplate.update(sql, newNo, oldNo, transNo);
+                "AND office_code = ? AND COALESCE(POSTED_TO_CODA, B'0') = B'0' AND COALESCE(Status, B'0') = B'0'";
+        jdbcTemplate.update(sql, newNo, oldNo, transNo, requiredLocation(locationId));
 
         String safeLogId = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
 
-        String auditSql = "INSERT INTO RECEIPT_AUDITLOG (log_id, original_cheque_no, transaction_no, new_cheque_no, reason, payment_mode, action_date, action_created_user) " +
-                "VALUES (?, ?, ?, ?, ?, 'T/T', ?, ?)";
+        String auditSql = "INSERT INTO RECEIPT_AUDITLOG (log_id, original_cheque_no, transaction_no, new_cheque_no, reason, payment_mode, action_date, action_created_user, office_code) " +
+                "VALUES (?, ?, ?, ?, ?, 'T/T', ?, ?, ?)";
 
         String safeOldNo = (oldNo != null && oldNo.length() > 32) ? oldNo.substring(0, 32) : oldNo;
         String safeTransNo = (transNo != null && transNo.length() > 20) ? transNo.substring(0, 20) : transNo;
@@ -53,6 +53,10 @@ public class UpdateTTRefService {
         String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         if (dateStr.length() > 20) dateStr = dateStr.substring(0, 20);
 
-        jdbcTemplate.update(auditSql, safeLogId, safeOldNo, safeTransNo, safeNewNo, safeRemark, dateStr, safeUser);
+        jdbcTemplate.update(auditSql, safeLogId, safeOldNo, safeTransNo, safeNewNo, safeRemark, dateStr, safeUser, requiredLocation(locationId));
+    }
+    private String requiredLocation(String locationId) {
+        if (locationId == null || locationId.isBlank()) throw new IllegalArgumentException("locationId is required.");
+        return locationId.trim();
     }
     }

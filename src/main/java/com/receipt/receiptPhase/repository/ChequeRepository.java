@@ -61,20 +61,18 @@ public class ChequeRepository {
         return count != null && count > 0;
     }
 
-    public void saveCheque(ChequeReaderModel cheque) {
+    public void saveCheque(ChequeReaderModel cheque, String locationId) {
         String sql = "INSERT INTO cheque_reader (cheque_reader_id, office_code, bound, cheque_no, bank_name, full_cheque_no, scan_user_id, date_created, auto_read, is_valid) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         String chequeReaderId = "CR" + String.format("%04d", Math.abs(System.currentTimeMillis() % 10000));
-
-        String officeCode = "OFF01";
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String formattedDate = cheque.getCreateTime().format(formatter);
 
         receiptJdbcTemplate.update(sql,
                 chequeReaderId,
-                officeCode,
+                locationId,
                 cheque.getBound(),
                 cheque.getChequeNo(),
                 cheque.getBankName(),
@@ -124,17 +122,17 @@ public class ChequeRepository {
     }
 
 
-    public List<ChequeReaderModel> getAllCheques() {
+    public List<ChequeReaderModel> getAllCheques(String locationId) {
         String sql = "SELECT cheque_reader_id, cheque_no, bank_name, full_cheque_no, bound, scan_user_id, auto_read, date_created, is_valid " +
-                "FROM cheque_reader WHERE COALESCE(is_valid, '1') != '0' ORDER BY date_created DESC";
-        return receiptJdbcTemplate.query(sql, new ChequeRowMapper());
+                "FROM cheque_reader WHERE office_code = ? AND COALESCE(is_valid, '1') != '0' ORDER BY date_created DESC";
+        return receiptJdbcTemplate.query(sql, new ChequeRowMapper(), locationId);
     }
 
 
-    public List<ChequeReaderModel> getChequesByUserId(String uid) {
+    public List<ChequeReaderModel> getChequesByUserId(String uid, String locationId) {
         String sql = "SELECT cheque_reader_id, cheque_no, bank_name, full_cheque_no, bound, scan_user_id, auto_read, date_created, is_valid " +
-                "FROM cheque_reader WHERE scan_user_id = ? AND COALESCE(is_valid, '1') != '0' ORDER BY date_created DESC";
-        return receiptJdbcTemplate.query(sql, new Object[]{uid}, new ChequeRowMapper());
+                "FROM cheque_reader WHERE scan_user_id = ? AND office_code = ? AND COALESCE(is_valid, '1') != '0' ORDER BY date_created DESC";
+        return receiptJdbcTemplate.query(sql, new Object[]{uid, locationId}, new ChequeRowMapper());
     }
 
     private class ChequeRowMapper implements org.springframework.jdbc.core.RowMapper<ChequeReaderModel> {

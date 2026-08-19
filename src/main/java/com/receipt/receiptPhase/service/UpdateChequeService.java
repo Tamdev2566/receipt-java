@@ -16,32 +16,32 @@ public class UpdateChequeService {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    public Map<String, Object> findByChequeNo(String chequeNo) {
+    public Map<String, Object> findByChequeNo(String chequeNo, String locationId) {
 
         String sql = "SELECT r.transaction_No, i.customer_name, r.reference_No, " +
                 "r.currency_code, r.amount, r.paid_invoice_total " +
                 "FROM Receipt r " +
                 "INNER JOIN Invoice i ON i.transaction_No = r.transaction_No " +
-                "WHERE r.reference_No = ? " +
+                "WHERE r.reference_No = ? AND r.office_code = ? " +
                 "AND COALESCE(r.posted_to_coda, B'0') = B'0' " +
                 "AND COALESCE(r.status, B'0') = B'0'";
         try {
-            return jdbcTemplate.queryForMap(sql, chequeNo);
+            return jdbcTemplate.queryForMap(sql, chequeNo, requiredLocation(locationId));
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
     }
 
     @Transactional
-    public void updateChequeNo(String oldNo, String newNo, String transNo, String remark, String userId) {
+    public void updateChequeNo(String oldNo, String newNo, String transNo, String remark, String userId, String locationId) {
 
         String sql = "UPDATE RECEIPT SET REFERENCE_NO = ? WHERE REFERENCE_NO = ? AND TRANSACTION_NO = ? " +
-                "AND COALESCE(POSTED_TO_CODA, B'0') = B'0' AND COALESCE(Status, B'0') = B'0'";
-        jdbcTemplate.update(sql, newNo, oldNo, transNo);
+                "AND office_code = ? AND COALESCE(POSTED_TO_CODA, B'0') = B'0' AND COALESCE(Status, B'0') = B'0'";
+        jdbcTemplate.update(sql, newNo, oldNo, transNo, requiredLocation(locationId));
         String nextId = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
 
-        String auditSql = "INSERT INTO RECEIPT_AUDITLOG (log_id, original_cheque_no, transaction_no, new_cheque_no, reason, payment_mode, action_date, action_created_user) " +
-                "VALUES (?, ?, ?, ?, ?, 'Cheque', ?, ?)";
+        String auditSql = "INSERT INTO RECEIPT_AUDITLOG (log_id, original_cheque_no, transaction_no, new_cheque_no, reason, payment_mode, action_date, action_created_user, office_code) " +
+                "VALUES (?, ?, ?, ?, ?, 'Cheque', ?, ?, ?)";
 
         String safeOldNo = (oldNo != null && oldNo.length() > 32) ? oldNo.substring(0, 32) : oldNo;
         String safeNewNo = (newNo != null && newNo.length() > 32) ? newNo.substring(0, 32) : newNo;
@@ -50,6 +50,11 @@ public class UpdateChequeService {
         String safeUser = (userId != null && userId.length() > 30) ? userId.substring(0, 30) : userId;
         String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        jdbcTemplate.update(auditSql, nextId, safeOldNo, safeTransNo, safeNewNo, safeRemark, dateStr, safeUser);
+        jdbcTemplate.update(auditSql, nextId, safeOldNo, safeTransNo, safeNewNo, safeRemark, dateStr, safeUser, requiredLocation(locationId));
+    }
+
+    private String requiredLocation(String locationId) {
+        if (locationId == null || locationId.isBlank()) throw new IllegalArgumentException("locationId is required.");
+        return locationId.trim();
     }
 }

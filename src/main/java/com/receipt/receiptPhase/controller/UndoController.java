@@ -21,7 +21,8 @@ public class UndoController {
     public ResponseEntity<Object> retrieveRecords(
             @RequestParam(required = false) String invoiceNo,
             @RequestParam(required = false) String chequeNo,
-            @RequestParam(required = false) String blNo) {
+            @RequestParam(required = false) String blNo,
+            @RequestParam String locationId) {
 
         if ((invoiceNo == null || invoiceNo.trim().isEmpty()) &&
                 (chequeNo == null || chequeNo.trim().isEmpty()) &&
@@ -33,7 +34,7 @@ public class UndoController {
             return ResponseEntity.badRequest().body(badRequest);
         }
 
-        UndoRequest data = undoService.retrieveRecords(invoiceNo, chequeNo, blNo);
+        UndoRequest data = undoService.retrieveRecords(invoiceNo, chequeNo, blNo, locationId);
 
         if (data == null) {
 
@@ -47,7 +48,7 @@ public class UndoController {
     }
 
     @PutMapping("/execute-rollback")
-    public ResponseEntity<Map<String, String>> executeUndo(@RequestBody List<String> selectedTransactionNos) {
+    public ResponseEntity<Map<String, String>> executeUndo(@RequestBody List<String> selectedTransactionNos, @RequestParam String locationId) {
         Map<String, String> response = new HashMap<>();
 
         if (selectedTransactionNos == null || selectedTransactionNos.isEmpty()) {
@@ -57,7 +58,7 @@ public class UndoController {
         }
 
         try {
-            undoService.processUndoPayment(selectedTransactionNos);
+            undoService.processUndoPayment(selectedTransactionNos, locationId);
             response.put("status", "SUCCESS");
             response.put("message", "Payment undone successfully..");
             return ResponseEntity.ok(response);

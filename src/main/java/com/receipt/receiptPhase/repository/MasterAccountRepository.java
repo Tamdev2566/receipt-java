@@ -31,15 +31,15 @@ public class MasterAccountRepository {
     }
 
 
-    public List<MasterAccountModel> findAll() {
-        String sql = "SELECT * FROM master_accounts WHERE COALESCE(is_deleted, '0') != '1'";
-        return jdbcTemplate.query(sql, new MasterAccountRowMapper());
+    public List<MasterAccountModel> findAll(String locationId) {
+        String sql = "SELECT * FROM master_accounts WHERE office_code = ? AND COALESCE(is_deleted, '0') != '1'";
+        return jdbcTemplate.query(sql, new MasterAccountRowMapper(), locationId);
     }
 
 
-    public MasterAccountModel findById(String accountId) {
-        String sql = "SELECT * FROM master_accounts WHERE account_id = ? AND COALESCE(is_deleted, '0') != '1'";
-        List<MasterAccountModel> list = jdbcTemplate.query(sql, new Object[]{accountId}, new MasterAccountRowMapper());
+    public MasterAccountModel findById(String accountId, String locationId) {
+        String sql = "SELECT * FROM master_accounts WHERE account_id = ? AND office_code = ? AND COALESCE(is_deleted, '0') != '1'";
+        List<MasterAccountModel> list = jdbcTemplate.query(sql, new Object[]{accountId, locationId}, new MasterAccountRowMapper());
         return list.isEmpty() ? null : list.get(0);
     }
 
@@ -47,18 +47,18 @@ public class MasterAccountRepository {
     public int update(MasterAccountModel account) {
         String sql = "UPDATE master_accounts SET office_code = ?, account_currency = ?, account_payment_mode = ?, " +
                 "account_code = ?, account_display_name = ?, account_seq = ?, is_valid = ?, date_modified = ?, user_modified = ? " +
-                "WHERE account_id = ?";
+                "WHERE account_id = ? AND office_code = ?";
 
         return jdbcTemplate.update(sql,
                 account.getOfficeCode(), account.getAccountCurrency(), account.getAccountPaymentMode(),
                 account.getAccountCode(), account.getAccountDisplayName(), account.getAccountSeq(),
-                account.getIsValid(), account.getDateModified(), account.getUserModified(), account.getAccountId());
+                account.getIsValid(), account.getDateModified(), account.getUserModified(), account.getAccountId(), account.getOfficeCode());
     }
 
 
-    public int delete(String accountId, String userDeleted, String dateDeleted) {
-        String sql = "UPDATE master_accounts SET is_deleted = '1', user_deleted = ?, date_deleted = ? WHERE account_id = ?";
-        return jdbcTemplate.update(sql, userDeleted, dateDeleted, accountId);
+    public int delete(String accountId, String userDeleted, String dateDeleted, String locationId) {
+        String sql = "UPDATE master_accounts SET is_deleted = '1', user_deleted = ?, date_deleted = ? WHERE account_id = ? AND office_code = ?";
+        return jdbcTemplate.update(sql, userDeleted, dateDeleted, accountId, locationId);
     }
 
 

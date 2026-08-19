@@ -18,7 +18,7 @@ public interface UndoRepository extends JpaRepository<ReceiptModal, String> {
             "r.currency_code as Currency, r.Amount, " +
             "r.Paid_Invoice_Total, r.Receipt_Date, r.Reference_No " +
             "FROM Receipt r INNER JOIN Invoice i ON i.Transaction_No = r.Transaction_No " +
-            "WHERE (:invNo IS NULL OR i.Transaction_No = :invNo) " +
+            "WHERE r.office_code = :locationId AND (:invNo IS NULL OR i.Transaction_No = :invNo) " +
             "AND (:chequeNo IS NULL OR r.Reference_No = :chequeNo) " +
             "AND (:blNo IS NULL OR i.BL_No = :blNo) " +
 
@@ -26,7 +26,7 @@ public interface UndoRepository extends JpaRepository<ReceiptModal, String> {
             "AND (r.Status IS NULL OR r.Status = '0') ORDER BY r.Transaction_No", nativeQuery = true)
     List<Map<String, Object>> retrieveReceipts(@Param("invNo") String invNo,
                                                @Param("chequeNo") String chequeNo,
-                                               @Param("blNo") String blNo);
+                                               @Param("blNo") String blNo, @Param("locationId") String locationId);
 
     @Query(value = "SELECT DISTINCT i2.Transaction_No,i2.Transaction_Date, i2.BL_No, i2.Vessel_Name, i2.Voyage_No, i2.Customer_Name, " +
             "i2.Type, i2.Reference_Date, i2.Reference_No, i2.Currency, i2.Settlement_Amt, " +
@@ -35,22 +35,22 @@ public interface UndoRepository extends JpaRepository<ReceiptModal, String> {
             "i2.partial, i2.write_off " +
             "FROM Invoice i1 INNER JOIN Invoice i2 ON i1.Transaction_No = i2.Transaction_No " +
             "INNER JOIN Receipt r ON i1.Transaction_No = r.Transaction_No " +
-            "WHERE (:invNo IS NULL OR i1.Transaction_No = :invNo) " +
+            "WHERE r.office_code = :locationId AND (:invNo IS NULL OR i1.Transaction_No = :invNo) " +
             "AND (:chequeNo IS NULL OR r.Reference_No = :chequeNo) " +
             "AND (:blNo IS NULL OR i1.BL_No = :blNo) " +
             "AND (r.Posted_to_coda IS NULL OR r.Posted_to_coda = '0') " +
             "AND (r.Status IS NULL OR r.Status = '0') ORDER BY i2.Transaction_No", nativeQuery = true)
     List<Map<String, Object>> retrieveInvoices(@Param("invNo") String invNo,
                                                @Param("chequeNo") String chequeNo,
-                                               @Param("blNo") String blNo);
+                                               @Param("blNo") String blNo, @Param("locationId") String locationId);
 
     @Query(value = "SELECT p.* FROM partial p INNER JOIN receipt r ON p.transaction_no = r.transaction_no " +
-            "WHERE (p.parital_status = '0') " +
+            "WHERE r.office_code = :locationId AND (p.parital_status = '0') " +
             "AND p.transaction_no = :refNo ORDER BY p.transaction_date", nativeQuery = true)
-    List<Map<String, Object>> getPartialDetails(@Param("refNo") String refNo);
+    List<Map<String, Object>> getPartialDetails(@Param("refNo") String refNo, @Param("locationId") String locationId);
 
     @Modifying
 
-    @Query(value = "UPDATE Receipt SET Status = '1', modified_date = :modDate WHERE Transaction_No = :transNo", nativeQuery = true)
-    void softDeleteReceipt(@Param("transNo") String transNo, @Param("modDate") String modDate);
+    @Query(value = "UPDATE Receipt SET Status = '1', modified_date = :modDate WHERE Transaction_No = :transNo AND office_code = :locationId", nativeQuery = true)
+    void softDeleteReceipt(@Param("transNo") String transNo, @Param("modDate") String modDate, @Param("locationId") String locationId);
 }

@@ -18,9 +18,9 @@ public class MasterAccountController {
     private MasterAccountService service;
 
     @PostMapping("/add")
-    public ResponseEntity<Map<String, Object>> addAccount(@RequestBody MasterAccountModel account) {
+    public ResponseEntity<Map<String, Object>> addAccount(@RequestBody MasterAccountModel account, @RequestParam String locationId) {
         Map<String, Object> response = new HashMap<>();
-        String message = service.createAccount(account);
+        String message = service.createAccount(account, locationId);
         response.put("status", message.contains("successfully") ? "SUCCESS" : "FAILED");
         response.put("message", message);
         return ResponseEntity.ok(response);
@@ -28,9 +28,9 @@ public class MasterAccountController {
 
 
     @GetMapping("/list")
-    public ResponseEntity<Map<String, Object>> getAllAccounts() {
+    public ResponseEntity<Map<String, Object>> getAllAccounts(@RequestParam String locationId) {
         Map<String, Object> response = new HashMap<>();
-        List<MasterAccountModel> accounts = service.getAllAccounts();
+        List<MasterAccountModel> accounts = service.getAllAccounts(locationId);
         response.put("status", "SUCCESS");
         response.put("totalRecords", accounts.size());
         response.put("data", accounts);
@@ -38,9 +38,9 @@ public class MasterAccountController {
     }
 
     @GetMapping("/{accountId}")
-    public ResponseEntity<Map<String, Object>> getAccountById(@PathVariable String accountId) {
+    public ResponseEntity<Map<String, Object>> getAccountById(@PathVariable String accountId, @RequestParam String locationId) {
         Map<String, Object> response = new HashMap<>();
-        MasterAccountModel account = service.getAccountById(accountId);
+        MasterAccountModel account = service.getAccountById(accountId, locationId);
         if (account != null) {
             response.put("status", "SUCCESS");
             response.put("data", account);
@@ -53,18 +53,18 @@ public class MasterAccountController {
 
 
     @PutMapping("/update/{accountId}")
-    public ResponseEntity<Map<String, Object>> updateAccount(@PathVariable String accountId, @RequestBody MasterAccountModel account) {
+    public ResponseEntity<Map<String, Object>> updateAccount(@PathVariable String accountId, @RequestBody MasterAccountModel account, @RequestParam String locationId) {
         Map<String, Object> response = new HashMap<>();
-        String message = service.updateAccount(accountId, account);
+        String message = service.updateAccount(accountId, account, locationId);
         response.put("status", message.contains("successfully") ? "SUCCESS" : "FAILED");
         response.put("message", message);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/delete/{accountId}")
-    public ResponseEntity<Map<String, Object>> deleteAccount(@PathVariable String accountId, @RequestParam(required = false, defaultValue = "SYSTEM") String userId) {
+    public ResponseEntity<Map<String, Object>> deleteAccount(@PathVariable String accountId, @RequestParam(required = false, defaultValue = "SYSTEM") String userId, @RequestParam String locationId) {
         Map<String, Object> response = new HashMap<>();
-        String message = service.deleteAccount(accountId, userId);
+        String message = service.deleteAccount(accountId, userId, locationId);
         response.put("status", message.contains("successfully") ? "SUCCESS" : "FAILED");
         response.put("message", message);
         return ResponseEntity.ok(response);

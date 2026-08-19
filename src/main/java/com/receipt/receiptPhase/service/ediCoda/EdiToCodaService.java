@@ -18,7 +18,7 @@ public class EdiToCodaService {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    public List<EdiToCoda> retrieveReceipts(LocalDate fromDate, LocalDate toDate) {
+    public List<EdiToCoda> retrieveReceipts(LocalDate fromDate, LocalDate toDate, String locationId) {
 
         String fromStr = fromDate.toString();
         String toStr = toDate.toString();
@@ -30,7 +30,7 @@ public class EdiToCodaService {
                 "       r.transaction_no, " +
                 "       (SELECT customer_name FROM invoice WHERE transaction_no = r.transaction_no LIMIT 1) AS customer_name " +
                 "FROM receipt r " +
-                "WHERE (r.status IS NULL OR r.status = '0'::bit) " +
+                "WHERE r.office_code = ? AND (r.status IS NULL OR r.status = '0'::bit) " +
                 "  AND (r.posted_to_coda IS NULL OR r.posted_to_coda = '0'::bit) " +
                 "  AND SUBSTRING(TRIM(r.transaction_date), 1, 10) >= ? " +
                 "  AND SUBSTRING(TRIM(r.transaction_date), 1, 10) <= ? " +
@@ -43,24 +43,24 @@ public class EdiToCodaService {
             dto.setAmount(rs.getBigDecimal("amount"));
             dto.setCustomerName(rs.getString("customer_name") != null ? rs.getString("customer_name") : "");
             return dto;
-        }, fromStr, toStr);
+        }, requiredLocation(locationId), fromStr, toStr);
     }
 
 
     @Transactional
-    public String exportEdiReceipts(LocalDate fromDate, LocalDate toDate) {
+    public String exportEdiReceipts(LocalDate fromDate, LocalDate toDate, String locationId) {
 
         String fromStr = fromDate.toString();
         String toStr = toDate.toString();
 
         String fetchSql = "SELECT transaction_no, receipt_date, currency_code AS currency FROM receipt " +
-                "WHERE (status IS NULL OR status = '0'::bit) " +
+                "WHERE office_code = ? AND (status IS NULL OR status = '0'::bit) " +
                 "  AND (posted_to_coda IS NULL OR posted_to_coda = '0'::bit) " +
                 "  AND SUBSTRING(TRIM(transaction_date), 1, 10) >= ? " +
                 "  AND SUBSTRING(TRIM(transaction_date), 1, 10) <= ? " +
                 "ORDER BY transaction_no";
 
-        List<Map<String, Object>> receipts = jdbcTemplate.queryForList(fetchSql, fromStr, toStr);
+        List<Map<String, Object>> receipts = jdbcTemplate.queryForList(fetchSql, requiredLocation(locationId), fromStr, toStr);
 
         if (receipts.isEmpty()) {
             return "No receipts found to export for the given date range.";
@@ -71,13 +71,18 @@ public class EdiToCodaService {
 
             String updateSql = "UPDATE receipt " +
                     "SET posted_to_coda = '1'::bit, modified_date = ? " +
-                    "WHERE (status IS NULL OR status = '0'::bit) " +
+                    "WHERE office_code = ? AND (status IS NULL OR status = '0'::bit) " +
                     "  AND (posted_to_coda IS NULL OR posted_to_coda = '0'::bit) " +
                     "  AND SUBSTRING(TRIM(transaction_date), 1, 10) >= ? " +
                     "  AND SUBSTRING(TRIM(transaction_date), 1, 10) <= ?";
 
-        int updatedRows = jdbcTemplate.update(updateSql, currentTimestamp, fromStr, toStr);
+        int updatedRows = jdbcTemplate.update(updateSql, currentTimestamp, requiredLocation(locationId), fromStr, toStr);
 
         return "Successfully exported " + updatedRows + " receipt record(s) to CODA.";
+    }
+
+    private String requiredLocation(String locationId) {
+        if (locationId == null || locationId.isBlank()) throw new IllegalArgumentException("locationId is required.");
+        return locationId.trim();
     }
 }

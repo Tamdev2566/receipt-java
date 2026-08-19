@@ -8,8 +8,7 @@ public class ReceiptReport {
 
     @JsonProperty("currency")
     private String currencyCode;
-
-    private String reportFor;
+   private String reportFor;
 
     // Getters and Setters
     public String getTransactionDate() { return transactionDate; }

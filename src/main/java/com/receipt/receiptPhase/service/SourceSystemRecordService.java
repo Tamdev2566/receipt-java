@@ -18,10 +18,18 @@ public class SourceSystemRecordService {
     }
 
     public List<VesselProjection> getVessels(SearchRequest request) {
-        return repository.findVessels(request.getCustomerName(), request.getSearch());
+        return repository.findVessels(request.getCustomerName(), request.getSearch(), requiredLocation(request));
     }
 
     public List<VoyageProjection> getVoyages(SearchRequest request) {
-        return repository.findVoyages(request.getCustomerName(), request.getVessel(), request.getSearch());
+        return repository.findVoyages(request.getCustomerName(), request.getVessel(), request.getSearch(), requiredLocation(request));
+    }
+
+    private String requiredLocation(SearchRequest request) {
+        String locationId = request.getLocationCode();
+        if (locationId == null || locationId.isBlank()) {
+            throw new IllegalArgumentException("locationId is required.");
+        }
+        return locationId;
     }
 }

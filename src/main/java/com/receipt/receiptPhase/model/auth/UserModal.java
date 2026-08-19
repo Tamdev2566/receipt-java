@@ -9,23 +9,33 @@ import jakarta.persistence.Table;
 @Table(name = "users")
 public class UserModal {
 
-    @Id
-    @Column(name = "user_id")
-    private String userId;
+  @Id
+  @Column(name = "user_id")
+  private String userId;
 
-    @Column(name = "is_valid")
-    private String isValid;
+  @Column(name = "is_valid")
+  private String isValid;
 
-    public UserModal() {}
+  public UserModal() {}
 
-    public UserModal(String userId, String isValid) {
-        this.userId = userId;
-        this.isValid = isValid;
-    }
+  public UserModal(String userId, String isValid) {
+    this.userId = userId;
+    this.isValid = isValid;
+  }
 
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
+  public String getUserId() {
+    return userId;
+  }
 
-    public String getIsValid() { return isValid; }
-    public void setIsValid(String isValid) { this.isValid = isValid; }
+  public void setUserId(String userId) {
+    this.userId = userId;
+  }
+
+  public String getIsValid() {
+    return isValid;
+  }
+
+  public void setIsValid(String isValid) {
+    this.isValid = isValid;
+  }
 }

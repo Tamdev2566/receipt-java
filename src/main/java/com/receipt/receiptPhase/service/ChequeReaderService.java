@@ -16,6 +16,7 @@ public class ChequeReaderService {
     private ChequeRepository repository;
 
     public String processAndSaveCheque(ChequeRequest request) throws Exception {
+        String locationId = requiredLocation(request.getLocationCode());
 
         if (request.getFullChequeNo() == null || request.getFullChequeNo().trim().isEmpty()) {
             throw new IllegalArgumentException("Please Enter Full Cheque No.");
@@ -87,17 +88,23 @@ public class ChequeReaderService {
         cheque.setAutoRead(autoRead);
         cheque.setFullChequeNo(fullCheque);
 
-        repository.saveCheque(cheque);
+        repository.saveCheque(cheque, locationId);
 
         return "Cheque No : " + chequeNoInput + " are saved Successfully!";
     }
 
-    public List<ChequeReaderModel> getChequeList(String uid) {
+    public List<ChequeReaderModel> getChequeList(String uid, String locationId) {
+        locationId = requiredLocation(locationId);
         if (uid != null && !uid.trim().isEmpty()) {
-            return repository.getChequesByUserId(uid.trim());
+            return repository.getChequesByUserId(uid.trim(), locationId);
         } else {
-            return repository.getAllCheques();
+            return repository.getAllCheques(locationId);
         }
+    }
+
+    private String requiredLocation(String locationId) {
+        if (locationId == null || locationId.isBlank()) throw new IllegalArgumentException("locationId is required.");
+        return locationId.trim();
     }
 
 

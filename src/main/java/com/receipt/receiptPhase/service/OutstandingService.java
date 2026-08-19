@@ -26,11 +26,16 @@ public class OutstandingService {
 
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("customerNames", request.getCustomerNames());
+        String locationId = request.getLocationCode();
+        if (locationId == null || locationId.isBlank()) {
+            throw new IllegalArgumentException("locationId is required.");
+        }
+        params.addValue("locationId", locationId);
 
         String query = "SELECT bl_no, vessel_code, vessel_name, voyage_no, customer_name, type, reference_date, reference_no, " +
                 "value_doc AS SGD_Amount, value_dual AS USD_Amount, original_sgd, original_usd " +
                 "FROM source_system_records " +
-                "WHERE (indicator IS NULL OR indicator = 0) AND customer_name IN (:customerNames)";
+                "WHERE office_code = :locationId AND (indicator IS NULL OR indicator = 0) AND customer_name IN (:customerNames)";
 
         String requestSource = request.getSource();
         if ("DocSys".equalsIgnoreCase(requestSource)) {

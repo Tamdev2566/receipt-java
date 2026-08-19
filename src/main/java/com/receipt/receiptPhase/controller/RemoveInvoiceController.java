@@ -21,14 +21,15 @@ public class RemoveInvoiceController {
     @GetMapping("/search")
     public ResponseEntity<?> searchInvoices(@RequestParam String customer,
                                             @RequestParam String vessel,
-                                            @RequestParam String voyage) {
-        return ResponseEntity.ok(invoiceService.getInvoices(customer, vessel, voyage));
+                                            @RequestParam String voyage,
+                                            @RequestParam String locationId) {
+        return ResponseEntity.ok(invoiceService.getInvoices(customer, vessel, voyage, locationId));
     }
 
     @GetMapping("/transaction/{transactionNo}")
-    public ResponseEntity<Map<String, Object>> getDetailsByTransaction(@PathVariable String transactionNo) {
+    public ResponseEntity<Map<String, Object>> getDetailsByTransaction(@PathVariable String transactionNo, @RequestParam String locationId) {
 
-        Map<String, Object> details = invoiceService.getDetailsByTransaction(transactionNo);
+        Map<String, Object> details = invoiceService.getDetailsByTransaction(transactionNo, locationId);
 
         if (details != null && !details.isEmpty()) {
 
@@ -47,6 +48,7 @@ public class RemoveInvoiceController {
         List<String> referenceNos = (List<String>) request.get("referenceNos");
         String userId = (String) request.get("userId");
         String remark = (String) request.get("remark");
+        String locationId = (String) request.get("locationId");
 
         if (referenceNos == null || referenceNos.isEmpty()) {
             Map<String, String> errorResponse = new HashMap<>();
@@ -54,7 +56,7 @@ public class RemoveInvoiceController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
 
-        invoiceService.removeInvoices(referenceNos, userId, remark);
+        invoiceService.removeInvoices(referenceNos, userId, remark, locationId);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Successfully removed invoices.");
         return ResponseEntity.ok(response);

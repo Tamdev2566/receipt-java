@@ -30,15 +30,15 @@ public class MasterBankRepository {
                 bank.getDateCreated(), bank.getUserCreated());
     }
 
-    public List<MasterBankModel> getAllBanksData() {
-        String sql = "SELECT * FROM master_banks WHERE COALESCE(is_deleted, '0') != '1' ORDER BY date_created DESC";
-        return jdbcTemplate.query(sql, new MasterBankRowMapper());
+    public List<MasterBankModel> getAllBanksData(String locationId) {
+        String sql = "SELECT * FROM master_banks WHERE office_code = ? AND COALESCE(is_deleted, '0') != '1' ORDER BY date_created DESC";
+        return jdbcTemplate.query(sql, new MasterBankRowMapper(), locationId);
     }
 
 
-    public MasterBankModel findById(String bankId) {
-        String sql = "SELECT * FROM master_banks WHERE bank_id = ?";
-        List<MasterBankModel> list = jdbcTemplate.query(sql, new Object[]{bankId}, new MasterBankRowMapper());
+    public MasterBankModel findById(String bankId, String locationId) {
+        String sql = "SELECT * FROM master_banks WHERE bank_id = ? AND office_code = ?";
+        List<MasterBankModel> list = jdbcTemplate.query(sql, new Object[]{bankId, locationId}, new MasterBankRowMapper());
         return list.isEmpty() ? null : list.get(0);
     }
 
@@ -46,21 +46,21 @@ public class MasterBankRepository {
     public int update(MasterBankModel bank) {
         String sql = "UPDATE master_banks SET office_code = ?, bank_code = ?, bank_name = ?, bank_description = ?, " +
                 "is_valid = ?, date_modified = ?, user_modified = ? " +
-                "WHERE bank_id = ?";
+                "WHERE bank_id = ? AND office_code = ?";
 
         return jdbcTemplate.update(sql,
                 bank.getOfficeCode(), bank.getBankCode(), bank.getBankName(), bank.getBankDescription(),
-                bank.getIsValid(), bank.getDateModified(), bank.getUserModified(), bank.getBankId());
+                bank.getIsValid(), bank.getDateModified(), bank.getUserModified(), bank.getBankId(), bank.getOfficeCode());
     }
 
 
-    public int delete(String bankId, String userId, String currentDateTime) {
+    public int delete(String bankId, String userId, String currentDateTime, String locationId) {
         String sql = "UPDATE master_banks SET " +
                 "is_valid = '0', user_invalid = ?, date_invalid = ?, " +
                 "is_deleted = '1', user_deleted = ?, date_deleted = ? " +
-                "WHERE bank_id = ?";
+                "WHERE bank_id = ? AND office_code = ?";
 
-        return jdbcTemplate.update(sql, userId, currentDateTime, userId, currentDateTime, bankId);
+        return jdbcTemplate.update(sql, userId, currentDateTime, userId, currentDateTime, bankId, locationId);
     }
 
     // RowMapper

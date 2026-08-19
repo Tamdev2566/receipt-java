@@ -1,17 +1,59 @@
 package com.receipt.receiptPhase.model;
 
 public class SearchRequest {
-    private String customerName;
-    private String search;
-    private String vessel;
 
-    // Getters and Setters
-    public String getCustomerName() { return customerName; }
-    public void setCustomerName(String customerName) { this.customerName = customerName; }
+  private String locationId;
+  private String officeCode;
+  private String customerName;
+  private String search;
+  private String vessel;
 
-    public String getSearch() { return search; }
-    public void setSearch(String search) { this.search = search; }
+  // Getters and Setters
+  public String getCustomerName() {
+    return customerName;
+  }
 
-    public String getVessel() { return vessel; }
-    public void setVessel(String vessel) { this.vessel = vessel; }
+  public void setCustomerName(String customerName) {
+    this.customerName = customerName;
+  }
+
+  public String getSearch() {
+    return search;
+  }
+
+  public void setSearch(String search) {
+    this.search = search;
+  }
+
+  public String getVessel() {
+    return vessel;
+  }
+
+  public void setVessel(String vessel) {
+    this.vessel = vessel;
+  }
+
+  public String getLocationId() {
+    return locationId;
+  }
+
+  public void setLocationId(String locationId) {
+    this.locationId = locationId;
+  }
+
+  public String getOfficeCode() {
+    return officeCode;
+  }
+
+  public void setOfficeCode(String officeCode) {
+    this.officeCode = officeCode;
+  }
+
+  public String getLocationCode() {
+    return locationId != null && !locationId.isBlank()
+      ? locationId.trim()
+      : officeCode != null
+        ? officeCode.trim()
+        : "";
+  }
 }
