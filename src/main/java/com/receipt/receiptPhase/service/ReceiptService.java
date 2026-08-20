@@ -90,7 +90,6 @@ public class ReceiptService {
       map.put("transactionNo", receipt.getTransactionNo());
       map.put("transactionDate", receipt.getTransactionDate());
 
-      // UI-க்கு திரும்ப அனுப்பும்போது பழையபடியே officeCode என்று அனுப்புகிறோம்
       map.put("officeCode", receipt.getLocationId());
 
       map.put("paymentMode", receipt.getPaymentMode());
