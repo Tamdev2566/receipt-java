@@ -1,47 +1,50 @@
 package com.receipt.receiptPhase.controller;
 
 import com.receipt.receiptPhase.service.UpdateTTRefService;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/tt-ref")
 public class UpdateTTRefController {
 
-    @Autowired
-    private UpdateTTRefService ttRefService;
+  @Autowired
+  private UpdateTTRefService ttRefService;
 
+  @GetMapping("/search")
+  public ResponseEntity<?> searchTT(
+    @RequestParam String ttNo,
+    @RequestParam String locationId
+  ) {
+    Map<String, Object> result = ttRefService.findByTTNo(ttNo, locationId);
 
-    @GetMapping("/search")
-    public ResponseEntity<?> searchTT(@RequestParam String ttNo, @RequestParam String locationId) {
-        Map<String, Object> result = ttRefService.findByTTNo(ttNo, locationId);
-
-        if (result == null) {
-            return ResponseEntity.ok(Map.of("message", "No record found"));
-        }
-
-        return ResponseEntity.ok(result);
+    if (result == null) {
+      return ResponseEntity.ok(Map.of("message", "No record found"));
     }
-    
-    @PostMapping("/update")
-    public ResponseEntity<Map<String, String>> updateTT(@RequestBody Map<String, String> payload) {
-        ttRefService.updateTTNo(
-                payload.get("originalTTNo"),
-                payload.get("newTTNo"),
-                payload.get("transactionNo"),
-                payload.get("remark"),
-                payload.get("userId"),
-                payload.get("locationId")
-        );
 
-        Map<String, String> response = new HashMap<>();
-        response.put("status", "success");
-        response.put("message", "T/T Reference Number Updated Successfully");
+    return ResponseEntity.ok(result);
+  }
 
-        return ResponseEntity.ok(response);
-    }
+  @PostMapping("/update")
+  public ResponseEntity<Map<String, String>> updateTT(
+    @RequestBody Map<String, String> payload
+  ) {
+    ttRefService.updateTTNo(
+      payload.get("originalTTNo"),
+      payload.get("newTTNo"),
+      payload.get("transactionNo"),
+      payload.get("remark"),
+      payload.get("userId"),
+      payload.get("locationId")
+    );
+
+    Map<String, String> response = new HashMap<>();
+    response.put("status", "success");
+    response.put("message", "T/T Reference Number Updated Successfully");
+
+    return ResponseEntity.ok(response);
+  }
 }

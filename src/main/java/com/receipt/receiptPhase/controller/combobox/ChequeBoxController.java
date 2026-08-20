@@ -41,7 +41,7 @@ public class ChequeBoxController {
       new Object[] { locationId.trim(), param },
       (rs, rowNum) -> {
         Map<String, Object> map = new java.util.HashMap<>();
-        map.put("id", rowNum + 1); // வரிசை எண்
+        map.put("id", rowNum + 1);
         map.put("name", rs.getString("CHEQUE_NO"));
         return map;
       }

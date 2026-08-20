@@ -24,7 +24,6 @@ public class RemoveInvoiceService {
     String voyage,
     String locationId
   ) {
-    // 1. Basic Query
     StringBuilder sql = new StringBuilder(
       "SELECT * FROM source_system_records WHERE COALESCE(indicator, 0) = 0 AND office_code = ?"
     );
@@ -47,7 +46,6 @@ public class RemoveInvoiceService {
       params.add(voyage.trim());
     }
 
-    // 3. Execute Query
     return jdbcTemplate.queryForList(sql.toString(), params.toArray());
   }
 
